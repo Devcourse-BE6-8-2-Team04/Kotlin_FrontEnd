@@ -5,6 +5,7 @@ import {
   getGeoLocations,
 } from "@/lib/backend/apiV1/weatherService";
 import {
+  AlertCircle,
   ChevronLeft,
   ImagePlus,
   Loader2,
@@ -31,6 +32,34 @@ async function uploadImageToServer(file: File): Promise<string> {
   return data.url;
 }
 
+// 유효성 검사 함수들
+const validateEmail = (email: string): string | null => {
+  if (!email) return "이메일을 입력해주세요.";
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) return "올바른 이메일 형식이 아닙니다.";
+  return null;
+};
+
+const validatePassword = (password: string): string | null => {
+  if (!password) return "비밀번호를 입력해주세요.";
+  if (password.length < 4) return "비밀번호는 4글자 이상이어야 합니다.";
+  return null;
+};
+
+const validateTitle = (title: string): string | null => {
+  if (!title) return "제목을 입력해주세요.";
+  if (title.length < 2) return "제목은 2글자 이상이어야 합니다.";
+  if (title.length > 100) return "제목은 100글자 이하여야 합니다.";
+  return null;
+};
+
+const validateContent = (content: string): string | null => {
+  if (!content) return "내용을 입력해주세요.";
+  if (content.length < 2) return "내용은 2글자 이상이어야 합니다.";
+  if (content.length > 500) return "내용은 500글자 이하여야 합니다.";
+  return null;
+};
+
 export function CommentCreateForm() {
   const router = useRouter();
   const [title, setTitle] = useState("");
@@ -50,6 +79,18 @@ export function CommentCreateForm() {
   const [isLoadingCities, setIsLoadingCities] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+
+  // 에러 상태 관리
+  const [errors, setErrors] = useState<{
+    email?: string;
+    password?: string;
+    title?: string;
+    content?: string;
+    tag?: string;
+    location?: string;
+    date?: string;
+  }>({});
+
   const dropdownRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const locationInputRef = useRef<HTMLInputElement>(null);
@@ -61,6 +102,20 @@ export function CommentCreateForm() {
 
   // 디바운스를 위한 타이머 ref
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // 에러 제거 헬퍼 함수
+  const clearError = (field: string) => {
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      delete newErrors[field as keyof typeof newErrors];
+      return newErrors;
+    });
+  };
+
+  // 에러 설정 헬퍼 함수
+  const setError = (field: string, message: string) => {
+    setErrors((prev) => ({ ...prev, [field]: message }));
+  };
 
   useEffect(() => {
     function handleTouchStart(event: TouchEvent) {
@@ -130,6 +185,51 @@ export function CommentCreateForm() {
     };
   }, [location, selectedCity]);
 
+  // 필드별 blur 핸들러
+  const handleEmailBlur = () => {
+    const error = validateEmail(email);
+    if (error) {
+      setError("email", error);
+    } else {
+      clearError("email");
+    }
+  };
+
+  const handlePasswordBlur = () => {
+    const error = validatePassword(password);
+    if (error) {
+      setError("password", error);
+    } else {
+      clearError("password");
+    }
+  };
+
+  const handleTitleBlur = () => {
+    const error = validateTitle(title);
+    if (error) {
+      setError("title", error);
+    } else {
+      clearError("title");
+    }
+  };
+
+  const handleContentBlur = () => {
+    const error = validateContent(content);
+    if (error) {
+      setError("content", error);
+    } else {
+      clearError("content");
+    }
+  };
+
+  const handleDateBlur = () => {
+    if (!date) {
+      setError("date", "날짜를 선택해주세요.");
+    } else {
+      clearError("date");
+    }
+  };
+
   // 이미지 파일 선택 → 서버에 업로드 → imageUrl에 URL 저장
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -153,10 +253,30 @@ export function CommentCreateForm() {
   };
 
   const handleTagAdd = () => {
-    if (tagInput.trim() && !tags.includes(tagInput.trim())) {
-      setTags([...tags, tagInput.trim()]);
-      setTagInput("");
+    const trimmedTag = tagInput.trim();
+
+    if (!trimmedTag) {
+      setError("tag", "태그를 입력해주세요.");
+      return;
     }
+
+    // 태그가 #으로 시작하지 않으면 자동으로 추가
+    const tagToAdd = trimmedTag.startsWith("#") ? trimmedTag : `#${trimmedTag}`;
+
+    // 길이 체크 (# 포함)
+    if (tagToAdd.length > 20) {
+      setError("tag", "태그는 20글자 이하여야 합니다.");
+      return;
+    }
+
+    if (tags.includes(tagToAdd)) {
+      setError("tag", "이미 추가된 태그입니다.");
+      return;
+    }
+
+    setTags([...tags, tagToAdd]);
+    setTagInput("");
+    clearError("tag");
   };
 
   const handleTagRemove = (tag: string) => {
@@ -169,6 +289,7 @@ export function CommentCreateForm() {
     setLocation(city.localName || city.name);
     setShowDropdown(false);
     setLocationCandidates([]);
+    clearError("location");
   };
 
   // 위치 입력 핸들러 개선
@@ -184,6 +305,7 @@ export function CommentCreateForm() {
     ) {
       setSelectedCity(null);
     }
+    clearError("location");
   };
 
   // 선택된 도시 제거
@@ -198,6 +320,34 @@ export function CommentCreateForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // 전체 유효성 검사
+    const newErrors: typeof errors = {};
+
+    const emailError = validateEmail(email);
+    if (emailError) newErrors.email = emailError;
+
+    const passwordError = validatePassword(password);
+    if (passwordError) newErrors.password = passwordError;
+
+    const titleError = validateTitle(title);
+    if (titleError) newErrors.title = titleError;
+
+    const contentError = validateContent(content);
+    if (contentError) newErrors.content = contentError;
+
+    if (!date) newErrors.date = "날짜를 선택해주세요.";
+
+    if (!selectedCity) newErrors.location = "도시를 선택해주세요.";
+
+    if (tags.length === 0) newErrors.tag = "태그를 최소 1개 이상 추가해주세요.";
+
+    // 에러가 있으면 제출 중단
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const body = {
@@ -258,60 +408,122 @@ export function CommentCreateForm() {
           ref={titleRef}
           type="text"
           placeholder="제목"
-          className="w-full text-base font-bold py-3 px-4 rounded-lg border border-gray-200 bg-gray-50 focus:outline-none focus:border-blue-400 placeholder-gray-400 focus:placeholder-blue-400 focus:bg-white transition-all duration-150"
+          className={`w-full text-base font-bold py-3 px-4 rounded-lg border bg-gray-50 focus:outline-none placeholder-gray-400 focus:placeholder-blue-400 focus:bg-white transition-all duration-150 ${
+            errors.title
+              ? "border-red-300 focus:border-red-400"
+              : "border-gray-200 focus:border-blue-400"
+          }`}
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={(e) => {
+            setTitle(e.target.value);
+            clearError("title");
+          }}
+          onBlur={handleTitleBlur}
           required
           style={{ color: "#222" }}
         />
+        {errors.title && (
+          <div className="flex items-center gap-2 mt-2 px-1">
+            <AlertCircle size={16} className="text-red-500 flex-shrink-0" />
+            <p className="text-sm text-red-600">{errors.title}</p>
+          </div>
+        )}
       </div>
 
       {/* PC/모바일 조건부 layout */}
       <div className="mb-4">
         <div className="flex flex-col md:flex-row gap-2">
           {/* 이메일 */}
-          <div className="flex items-center flex-1 bg-gray-50 rounded-lg border border-gray-200 px-3 py-2 focus-within:border-blue-400 transition-all duration-150">
-            <Mail size={18} className="mr-2 text-blue-500" />
-            <input
-              ref={emailRef}
-              type="email"
-              placeholder="이메일"
-              className="w-full text-sm bg-transparent focus:outline-none placeholder-gray-400 focus:placeholder-blue-400 focus:bg-white transition-all"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              style={{ color: "#222" }}
-              onFocus={(e) => e.target.classList.add("animate-blink")}
-              onBlur={(e) => e.target.classList.remove("animate-blink")}
-            />
+          <div className="flex-1">
+            <div
+              className={`flex items-center bg-gray-50 rounded-lg border px-3 py-2 focus-within:border-blue-400 transition-all duration-150 ${
+                errors.email
+                  ? "border-red-300 focus-within:border-red-400"
+                  : "border-gray-200"
+              }`}
+            >
+              <Mail size={18} className="mr-2 text-blue-500" />
+              <input
+                ref={emailRef}
+                type="email"
+                placeholder="이메일"
+                className="w-full text-sm bg-transparent focus:outline-none placeholder-gray-400 focus:placeholder-blue-400 focus:bg-white transition-all"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  clearError("email");
+                }}
+                onBlur={handleEmailBlur}
+                required
+                style={{ color: "#222" }}
+              />
+            </div>
+            {errors.email && (
+              <div className="flex items-center gap-2 mt-1 px-1">
+                <AlertCircle size={14} className="text-red-500 flex-shrink-0" />
+                <p className="text-xs text-red-600">{errors.email}</p>
+              </div>
+            )}
           </div>
           {/* 비밀번호 */}
-          <div className="flex items-center flex-1 bg-gray-50 rounded-lg border border-gray-200 px-3 py-2 focus-within:border-blue-400 transition-all duration-150">
-            <Lock size={18} className="mr-2 text-blue-500" />
-            <input
-              ref={passwordRef}
-              type="password"
-              placeholder="비밀번호"
-              className="w-full text-sm bg-transparent focus:outline-none placeholder-gray-400 focus:placeholder-blue-400 focus:bg-white transition-all"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="new-password"
-              style={{ color: "#222" }}
-              onFocus={(e) => e.target.classList.add("animate-blink")}
-              onBlur={(e) => e.target.classList.remove("animate-blink")}
-            />
+          <div className="flex-1">
+            <div
+              className={`flex items-center bg-gray-50 rounded-lg border px-3 py-2 focus-within:border-blue-400 transition-all duration-150 ${
+                errors.password
+                  ? "border-red-300 focus-within:border-red-400"
+                  : "border-gray-200"
+              }`}
+            >
+              <Lock size={18} className="mr-2 text-blue-500" />
+              <input
+                ref={passwordRef}
+                type="password"
+                placeholder="비밀번호"
+                className="w-full text-sm bg-transparent focus:outline-none placeholder-gray-400 focus:placeholder-blue-400 focus:bg-white transition-all"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  clearError("password");
+                }}
+                onBlur={handlePasswordBlur}
+                required
+                autoComplete="new-password"
+                style={{ color: "#222" }}
+              />
+            </div>
+            {errors.password && (
+              <div className="flex items-center gap-2 mt-1 px-1">
+                <AlertCircle size={14} className="text-red-500 flex-shrink-0" />
+                <p className="text-xs text-red-600">{errors.password}</p>
+              </div>
+            )}
           </div>
         </div>
         {/* 날짜 */}
-        <input
-          type="date"
-          className="w-full text-sm py-3 px-4 mt-2 rounded-lg border border-gray-200 bg-gray-50 focus:outline-none focus:border-blue-400"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          required
-          style={{ color: "#222" }}
-        />
+        <div className="mt-2">
+          <input
+            type="date"
+            className={`w-full text-sm py-3 px-4 rounded-lg border bg-gray-50 focus:outline-none transition-all duration-150 ${
+              errors.date
+                ? "border-red-300 focus:border-red-400"
+                : "border-gray-200 focus:border-blue-400"
+            }`}
+            value={date}
+            onChange={(e) => {
+              setDate(e.target.value);
+              clearError("date");
+            }}
+            onBlur={handleDateBlur}
+            required
+            style={{ color: "#222" }}
+          />
+          {errors.date && (
+            <div className="flex items-center gap-2 mt-1 px-1">
+              <AlertCircle size={14} className="text-red-500 flex-shrink-0" />
+              <p className="text-xs text-red-600">{errors.date}</p>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* 지역 정보 */}
@@ -338,7 +550,13 @@ export function CommentCreateForm() {
             </div>
           ) : (
             /* 검색 입력 필드 */
-            <div className="flex items-center bg-gray-50 rounded-lg border border-gray-200 px-3 py-2 focus-within:border-blue-400 transition-all duration-150">
+            <div
+              className={`flex items-center bg-gray-50 rounded-lg border px-3 py-2 focus-within:border-blue-400 transition-all duration-150 ${
+                errors.location
+                  ? "border-red-300 focus-within:border-red-400"
+                  : "border-gray-200"
+              }`}
+            >
               <MapPin size={18} className="text-blue-500 mr-2" />
               <input
                 ref={locationInputRef}
@@ -392,18 +610,45 @@ export function CommentCreateForm() {
             </div>
           )}
         </div>
+        {errors.location && (
+          <div className="flex items-center gap-2 mt-2 px-1">
+            <AlertCircle size={16} className="text-red-500 flex-shrink-0" />
+            <p className="text-sm text-red-600">{errors.location}</p>
+          </div>
+        )}
       </div>
 
       {/* 내용 */}
       <div className="mb-4">
         <textarea
           placeholder="내용을 입력하세요"
-          className="w-full text-base py-3 px-4 rounded-lg border border-gray-200 bg-gray-50 focus:outline-none focus:border-blue-400 placeholder-gray-400 focus:placeholder-blue-400 focus:bg-white min-h-[120px] resize-none transition-all duration-150"
+          className={`w-full text-base py-3 px-4 rounded-lg border bg-gray-50 focus:outline-none placeholder-gray-400 focus:placeholder-blue-400 focus:bg-white min-h-[120px] resize-none transition-all duration-150 ${
+            errors.content
+              ? "border-red-300 focus:border-red-400"
+              : "border-gray-200 focus:border-blue-400"
+          }`}
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={(e) => {
+            setContent(e.target.value);
+            clearError("content");
+          }}
+          onBlur={handleContentBlur}
           required
           style={{ color: "#222" }}
         />
+        <div className="flex justify-between items-center mt-1">
+          <div>
+            {errors.content && (
+              <div className="flex items-center gap-2 px-1">
+                <AlertCircle size={14} className="text-red-500 flex-shrink-0" />
+                <p className="text-xs text-red-600">{errors.content}</p>
+              </div>
+            )}
+          </div>
+          {content && (
+            <div className="text-xs text-gray-500">{content.length}/500자</div>
+          )}
+        </div>
       </div>
 
       {/* 태그 */}
@@ -411,10 +656,17 @@ export function CommentCreateForm() {
         <div className="flex items-center gap-2 mb-2">
           <input
             type="text"
-            placeholder="#태그 입력 후 Enter"
-            className="bg-gray-50 focus:outline-none px-4 py-2 text-sm rounded-lg border border-gray-200 placeholder-gray-400 focus:placeholder-blue-400 focus:bg-white w-full"
+            placeholder="태그 입력 후 Enter (예: #여행)"
+            className={`bg-gray-50 focus:outline-none px-4 py-2 text-sm rounded-lg border placeholder-gray-400 focus:placeholder-blue-400 focus:bg-white w-full transition-all duration-150 ${
+              errors.tag
+                ? "border-red-300 focus:border-red-400"
+                : "border-gray-200 focus:border-blue-400"
+            }`}
             value={tagInput}
-            onChange={(e) => setTagInput(e.target.value)}
+            onChange={(e) => {
+              setTagInput(e.target.value);
+              clearError("tag");
+            }}
             onKeyDown={(e) =>
               e.key === "Enter"
                 ? (e.preventDefault(), handleTagAdd())
@@ -431,11 +683,17 @@ export function CommentCreateForm() {
             <Plus size={16} />
           </button>
         </div>
+        {errors.tag && (
+          <div className="flex items-center gap-2 mb-2 px-1">
+            <AlertCircle size={14} className="text-red-500 flex-shrink-0" />
+            <p className="text-xs text-red-600">{errors.tag}</p>
+          </div>
+        )}
         <div className="flex gap-2 flex-wrap">
           {tags.map((tag) => (
             <span
               key={tag}
-              className="group bg-blue-100 text-blue-900 px-3 py-1 rounded-full text-xs border border-blue-200 shadow-sm flex items-center gap-1 hover:bg-blue-200 transition-colors"
+              className="group bg-blue-100 text-blue-900 px-3 py-1 rounded-full text-xs border border-blue-200 shadow-sm flex items-center gap-1 hover:bg-blue-200 transition-colors cursor-pointer"
               onClick={() => handleTagRemove(tag)}
             >
               {tag}
