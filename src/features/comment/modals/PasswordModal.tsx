@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
 export default function PasswordModal({
-  onClose, onVerify,
+  onClose,
+  onVerify,
 }: {
   onClose: () => void;
   onVerify: (password: string) => void;
@@ -16,11 +17,11 @@ export default function PasswordModal({
           type="password"
           value={pw}
           onChange={(e) => setPw(e.target.value)}
-          className="w-full px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 text-sm border border-gray-400 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all focus:outline-none"
           placeholder="비밀번호를 입력해주세요."
           autoFocus
           autoComplete="current-password"
-          onKeyDown={(e) => e.key === 'Enter' && pw && onVerify(pw)}
+          onKeyDown={(e) => e.key === "Enter" && pw && onVerify(pw)}
           aria-label="비밀번호 입력"
         />
         <div className="flex justify-end gap-2 pt-2">

@@ -16,7 +16,7 @@ export function Header() {
           </Link>
           <div className="ml-auto">
             <Link href="/comments/create">
-              <button className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white font-medium rounded-xl hover:bg-gray-800 transition-all transform hover:scale-105 active:scale-95 shadow-sm cursor-pointer">
+              <button className="flex items-center gap-2 px-3.5 py-2 bg-gray-900 text-white font-medium rounded-xl hover:bg-gray-800 transition-all transform hover:scale-105 active:scale-95 shadow-sm cursor-pointer">
                 <PencilLine size={18} />
                 <span className="hidden sm:inline">글 쓰기</span>
               </button>

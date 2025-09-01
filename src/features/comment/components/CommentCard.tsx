@@ -1,7 +1,8 @@
-import React from "react";
+"use client";
+
 import type { components } from "@/lib/backend/apiV1/schema";
-import { WeatherInfo } from "./WeatherInfo";
 import { Tag } from "lucide-react";
+import { WeatherInfo } from "./WeatherInfo";
 
 type CommentDto = components["schemas"]["CommentDto"];
 
@@ -17,7 +18,7 @@ export function CommentCard({ comment }: CommentCardProps) {
         <h1 className="text-xl sm:text-2xl font-bold text-gray-900 break-keep leading-tight">
           {comment.title}
         </h1>
-            
+
         {/* Meta Info */}
         <div className="flex flex-row items-center justify-between gap-2 mt-4">
           <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -25,9 +26,9 @@ export function CommentCard({ comment }: CommentCardProps) {
           </div>
           <div className="text-sm text-gray-500">
             {new Date(comment.weatherInfoDto.date).toLocaleDateString("ko-KR", {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
+              year: "numeric",
+              month: "long",
+              day: "numeric",
             })}
           </div>
         </div>
@@ -55,8 +56,8 @@ export function CommentCard({ comment }: CommentCardProps) {
               .split("#")
               .filter((tag) => tag.trim() !== "")
               .map((tag, idx) => (
-                <span 
-                  key={idx} 
+                <span
+                  key={idx}
                   className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full border border-blue-200 font-medium"
                 >
                   #{tag}
