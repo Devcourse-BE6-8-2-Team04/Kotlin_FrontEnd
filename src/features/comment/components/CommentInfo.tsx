@@ -1,11 +1,11 @@
-import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useComment } from "../hooks/useComment";
-import { LoadingSpinner } from "./LoadingSpinner";
-import { CommentHeader } from "./CommentHeader";
-import { CommentCard } from "./CommentCard";
-import PasswordModal from "../modals/PasswordModal";
 import ConfirmModal from "../modals/ConfirmModal";
+import PasswordModal from "../modals/PasswordModal";
+import { CommentCard } from "./CommentCard";
+import { CommentHeader } from "./CommentHeader";
+import { LoadingSpinner } from "./LoadingSpinner";
 
 interface CommentInfoProps {
   commentState: ReturnType<typeof useComment>;
@@ -14,7 +14,9 @@ interface CommentInfoProps {
 export function CommentInfo({ commentState }: CommentInfoProps) {
   const router = useRouter();
   const { comment, deleteComment, verifyPassword } = commentState;
-  const [showPwModal, setShowPwModal] = useState<"delete" | "edit" | null>(null);
+  const [showPwModal, setShowPwModal] = useState<"delete" | "edit" | null>(
+    null
+  );
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -75,7 +77,7 @@ export function CommentInfo({ commentState }: CommentInfoProps) {
       )}
 
       {errorMsg && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-[9999] animate-fade-in-out">
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-[9999] animate-fade-in-out whitespace-nowrap">
           {errorMsg}
         </div>
       )}

@@ -1,18 +1,17 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import Modal from "../modals/Modal";
-import { Header } from "./CommentsHeader";
-import { SearchFilters } from "./SearchFilters";
-import { ActiveFilters } from "./ActiveFilters";
-import { ResultsCount } from "./ResultsCount";
-import { CommentsList } from "./CommentsList";
-import { Pagination } from "./Pagination";
-import { LoadingSpinner } from "./LoadingSpinner";
 import type { components } from "@/lib/backend/apiV1/schema";
 import { apiFetch } from "@/lib/backend/client";
-import { SearchFiltersType } from "../types";
 import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { SearchFiltersType } from "../types";
+import { ActiveFilters } from "./ActiveFilters";
+import { Header } from "./CommentsHeader";
+import { CommentsList } from "./CommentsList";
+import { LoadingSpinner } from "./LoadingSpinner";
+import { Pagination } from "./Pagination";
+import { ResultsCount } from "./ResultsCount";
+import { SearchFilters } from "./SearchFilters";
 
 type CommentDto = components["schemas"]["CommentDto"];
 
@@ -20,15 +19,16 @@ export default function CommentsMain() {
   const searchParams = useSearchParams();
 
   const [comments, setComments] = useState<CommentDto[] | null>(null);
-  const [showModal, setShowModal] = useState(false);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
 
   const [filters, setFilters] = useState<SearchFiltersType>(() => {
-    const initialLocation = searchParams.get('location');
-    const initialDate = searchParams.get('date'); // 'date' 파라미터도 있다면
-    const initialMonth = initialDate ? new Date(initialDate).getMonth() + 1 : undefined; // 날짜에서 월 추출
+    const initialLocation = searchParams.get("location");
+    const initialDate = searchParams.get("date"); // 'date' 파라미터도 있다면
+    const initialMonth = initialDate
+      ? new Date(initialDate).getMonth() + 1
+      : undefined; // 날짜에서 월 추출
     // const initialFeelsLikeTemperature = searchParams.get('feelsLikeTemperature');
 
     const initialFilters: SearchFiltersType = {};
@@ -44,24 +44,35 @@ export default function CommentsMain() {
     return initialFilters;
   });
 
-  const fetchComments = async (currentPage: number, searchFilters: SearchFiltersType) => {
+  const fetchComments = async (
+    currentPage: number,
+    searchFilters: SearchFiltersType
+  ) => {
     const params = new URLSearchParams({
       page: currentPage.toString(),
-      size: '10'
+      size: "10",
     });
-       
-    if (searchFilters.location) params.append('location', searchFilters.location);
-    if (searchFilters.feelsLikeTemperature !== undefined) params.append('feelsLikeTemperature', searchFilters.feelsLikeTemperature.toString());
-    if (searchFilters.month !== undefined) params.append('month', searchFilters.month.toString());
-    if (searchFilters.email) params.append('email', searchFilters.email);
 
-    apiFetch(`/api/v1/comments?${params}`).then((res) => {
-      setComments(res.content || []);
-      setTotalPages(res.totalPages ?? 0);
-      setTotalElements(res.totalElements);
-    }).catch((error) => {
-      console.error(`${error.resultCode} : ${error.msg}`);
-    });
+    if (searchFilters.location)
+      params.append("location", searchFilters.location);
+    if (searchFilters.feelsLikeTemperature !== undefined)
+      params.append(
+        "feelsLikeTemperature",
+        searchFilters.feelsLikeTemperature.toString()
+      );
+    if (searchFilters.month !== undefined)
+      params.append("month", searchFilters.month.toString());
+    if (searchFilters.email) params.append("email", searchFilters.email);
+
+    apiFetch(`/api/v1/comments?${params}`)
+      .then((res) => {
+        setComments(res.content || []);
+        setTotalPages(res.totalPages ?? 0);
+        setTotalElements(res.totalElements);
+      })
+      .catch((error) => {
+        console.error(`${error.resultCode} : ${error.msg}`);
+      });
   };
 
   useEffect(() => {
@@ -73,11 +84,6 @@ export default function CommentsMain() {
     setPage(0); // 필터 변경 시 첫 페이지로 이동
   };
 
-  const handleCreate = (comment: CommentDto) => {
-    setComments([comment, ...(comments || [])]);
-    setShowModal(false);
-  };
-
   const hasActiveFilters = Object.keys(filters).length > 0;
 
   if (comments === null) {
@@ -86,15 +92,24 @@ export default function CommentsMain() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-[73px]">
-      <Header onCreateClick={() => setShowModal(true)} />
+      <Header />
 
       <div className="px-4 py-6 max-w-4xl mx-auto">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mb-6 overflow-hidden">
-          <SearchFilters onFiltersChange={handleFiltersChange} initialFilters={filters} />
-          <ActiveFilters filters={filters} onFiltersChange={handleFiltersChange} />
+          <SearchFilters
+            onFiltersChange={handleFiltersChange}
+            initialFilters={filters}
+          />
+          <ActiveFilters
+            filters={filters}
+            onFiltersChange={handleFiltersChange}
+          />
         </div>
 
-        <ResultsCount totalElements={totalElements} hasActiveFilters={hasActiveFilters} />
+        <ResultsCount
+          totalElements={totalElements}
+          hasActiveFilters={hasActiveFilters}
+        />
 
         <CommentsList
           comments={comments}
@@ -108,10 +123,6 @@ export default function CommentsMain() {
           onPageChange={setPage}
         />
       </div>
-
-      {showModal && (
-        <Modal onClose={() => setShowModal(false)} onCreate={handleCreate} />
-      )}
     </div>
   );
 }
