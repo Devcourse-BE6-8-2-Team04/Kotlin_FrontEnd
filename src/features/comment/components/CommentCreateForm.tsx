@@ -12,6 +12,7 @@ import {
   Mail,
   MapPin,
   Plus,
+  X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
@@ -51,11 +52,15 @@ export function CommentCreateForm() {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const locationInputRef = useRef<HTMLInputElement>(null);
 
   // focus 관리
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
+
+  // 디바운스를 위한 타이머 ref
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     function handleTouchStart(event: TouchEvent) {
@@ -70,33 +75,60 @@ export function CommentCreateForm() {
     return () => document.removeEventListener("touchstart", handleTouchStart);
   }, []);
 
+  // 개선된 도시 검색 로직
   useEffect(() => {
-    if (!location) {
+    // 이전 타이머가 있다면 클리어
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    // 입력값이 없거나 2글자 미만이면 드롭다운 숨기기
+    if (!location || location.trim().length < 2) {
       setLocationCandidates([]);
       setShowDropdown(false);
+      setIsLoadingCities(false);
       return;
     }
-    const abortController = new AbortController();
-    async function fetchCities() {
-      try {
-        setIsLoadingCities(true);
 
-        // API를 통해 지역 정보 검색
+    // 이미 선택된 도시와 같다면 검색하지 않음
+    if (selectedCity && location === selectedCity.name) {
+      return;
+    }
+
+    // 로딩 상태 시작 (좀 더 빠르게 표시)
+    const loadingTimeout = setTimeout(() => {
+      setIsLoadingCities(true);
+    }, 100);
+
+    // 실제 검색은 500ms 후에 실행 (디바운스)
+    searchTimeoutRef.current = setTimeout(async () => {
+      try {
         const results = await getGeoLocations(location);
         setLocationCandidates(results);
+
+        // 결과가 있으면 드롭다운 표시
+        if (results.length > 0) {
+          setShowDropdown(true);
+        } else {
+          setShowDropdown(false);
+        }
       } catch (error) {
         console.error("검색 실패:", error);
         setLocationCandidates([]);
+        setShowDropdown(false);
       } finally {
+        clearTimeout(loadingTimeout);
         setIsLoadingCities(false);
       }
-    }
-    const timeout = setTimeout(fetchCities, 300);
+    }, 500);
+
     return () => {
-      clearTimeout(timeout);
-      abortController.abort();
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+      clearTimeout(loadingTimeout);
     };
-  }, [location]);
+  }, [location, selectedCity]);
 
   // 이미지 파일 선택 → 서버에 업로드 → imageUrl에 URL 저장
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -126,12 +158,42 @@ export function CommentCreateForm() {
       setTagInput("");
     }
   };
+
   const handleTagRemove = (tag: string) => {
     setTags(tags.filter((t) => t !== tag));
   };
 
-  const handleGoBack = () => {
-    router.push("/comments");
+  // 도시 선택 핸들러 개선
+  const handleCitySelect = (city: GeoLocationDto) => {
+    setSelectedCity(city);
+    setLocation(city.localName || city.name);
+    setShowDropdown(false);
+    setLocationCandidates([]);
+  };
+
+  // 위치 입력 핸들러 개선
+  const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setLocation(value);
+
+    // 입력이 변경되면 선택된 도시 초기화
+    if (
+      selectedCity &&
+      value !== selectedCity.name &&
+      value !== selectedCity.localName
+    ) {
+      setSelectedCity(null);
+    }
+  };
+
+  // 선택된 도시 제거
+  const handleClearSelectedCity = () => {
+    setSelectedCity(null);
+    setLocation("");
+    setShowDropdown(false);
+    if (locationInputRef.current) {
+      locationInputRef.current.focus();
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -182,8 +244,8 @@ export function CommentCreateForm() {
       <div className="flex items-center mb-4">
         <button
           type="button"
-          onClick={handleGoBack}
-          className="flex items-center gap-2 px-2 py-2 bg-white border border-gray-200 rounded-full text-gray-700 hover:bg-gray-100 transition-all duration-150"
+          onClick={() => router.back()}
+          className="p-2 hover:bg-gray-100 rounded-xl transition-colors cursor-pointer"
         >
           <ChevronLeft size={22} className="text-gray-600" />
         </button>
@@ -252,48 +314,78 @@ export function CommentCreateForm() {
         />
       </div>
 
-      {/* 날씨 정보 - 한 줄 정렬 */}
-      <div className="grid grid-cols-1 gap-2 mb-4">
+      {/* 지역 정보 */}
+      <div className="mb-4">
         <div className="relative" ref={dropdownRef}>
-          <div className="flex items-center gap-2 bg-gray-50 px-4 py-3 rounded-lg border border-gray-200">
-            <MapPin size={22} className="text-blue-500 flex-shrink-0" />
-            <input
-              type="text"
-              placeholder="도시 검색"
-              className="bg-transparent focus:outline-none text-sm w-full placeholder-gray-400 focus:placeholder-blue-400 focus:bg-white"
-              value={location}
-              onChange={(e) => {
-                setLocation(e.target.value);
-                setSelectedCity(null);
-              }}
-              onFocus={() => setShowDropdown(locationCandidates.length > 0)}
-              autoComplete="off"
-              required
-              style={{ color: "#222" }}
-            />
-            {isLoadingCities && (
-              <Loader2 className="animate-spin ml-1" size={18} />
-            )}
-          </div>
-          {showDropdown && (
-            <div className="absolute z-20 mt-1 w-full bg-white border rounded-lg shadow-sm max-h-48 overflow-auto">
+          {/* 선택된 도시가 있을 때의 표시 */}
+          {selectedCity ? (
+            <div className="flex items-center justify-between bg-blue-50 rounded-lg border border-blue-200 px-3 py-3 transition-all duration-150">
+              <div className="flex items-center">
+                <MapPin size={18} className="text-blue-500 mr-2" />
+                <span className="text-sm text-blue-900 font-medium">
+                  {selectedCity.localName
+                    ? `${selectedCity.localName} (${selectedCity.name}, ${selectedCity.country})`
+                    : `${selectedCity.name}, ${selectedCity.country}`}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={handleClearSelectedCity}
+                className="ml-2 p-1 hover:bg-blue-100 rounded-full transition-colors"
+              >
+                <X size={16} className="text-blue-600" />
+              </button>
+            </div>
+          ) : (
+            /* 검색 입력 필드 */
+            <div className="flex items-center bg-gray-50 rounded-lg border border-gray-200 px-3 py-2 focus-within:border-blue-400 transition-all duration-150">
+              <MapPin size={18} className="text-blue-500 mr-2" />
+              <input
+                ref={locationInputRef}
+                type="text"
+                placeholder="도시 검색"
+                className="w-full text-sm bg-transparent focus:outline-none placeholder-gray-400 focus:placeholder-blue-400 focus:bg-white transition-all"
+                value={location}
+                onChange={handleLocationChange}
+                onFocus={() => {
+                  if (locationCandidates.length > 0) {
+                    setShowDropdown(true);
+                  }
+                }}
+                autoComplete="off"
+                required
+                style={{ color: "#222" }}
+              />
+              {isLoadingCities && (
+                <Loader2
+                  className="animate-spin ml-2 text-blue-500"
+                  size={18}
+                />
+              )}
+            </div>
+          )}
+
+          {/* 검색 결과 드롭다운 */}
+          {showDropdown && !selectedCity && (
+            <div className="absolute z-20 mt-1 w-full bg-white border rounded-lg shadow-lg max-h-48 overflow-auto animate-in fade-in duration-150">
               {locationCandidates.length === 0 ? (
-                <div className="px-3 py-2 text-sm text-gray-400">
-                  검색 결과 없음
+                <div className="px-3 py-3 text-sm text-gray-500 text-center">
+                  검색 결과가 없습니다
                 </div>
               ) : (
                 locationCandidates.map((city, idx) => (
                   <div
-                    key={city.lat + city.lon + idx}
-                    className="px-3 py-2 hover:bg-blue-50 cursor-pointer text-sm text-gray-900 transition"
-                    onClick={() => {
-                      setSelectedCity(city);
-                      setShowDropdown(false);
-                    }}
+                    key={`${city.lat}-${city.lon}-${idx}`}
+                    className="px-3 py-2 hover:bg-blue-50 cursor-pointer text-sm text-gray-900 transition-colors border-b border-gray-50 last:border-b-0"
+                    onClick={() => handleCitySelect(city)}
                   >
-                    {city.localName
-                      ? `${city.localName} (${city.name}, ${city.country})`
-                      : `${city.name}, ${city.country}`}
+                    <div className="font-medium">
+                      {city.localName || city.name}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {city.country}
+                      {city.localName && ` • ${city.name}`}
+                    </div>
                   </div>
                 ))
               )}
@@ -410,6 +502,19 @@ export function CommentCreateForm() {
         }
         .animate-blink {
           animation: blink 1s linear infinite;
+        }
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-in {
+          animation: fade-in 0.15s ease-out;
         }
       `}</style>
     </form>
