@@ -15,7 +15,7 @@ import {
   ThermometerSun,
 } from "lucide-react";
 
-type WeatherInfoDto = components["schemas"]["CommentDto"]["weatherInfoDto"];
+type WeatherInfoDto = components["schemas"]["ReviewDto"]["weatherInfoDto"];
 
 interface WeatherInfoProps {
   weatherInfo: WeatherInfoDto;

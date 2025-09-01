@@ -1,19 +1,19 @@
-import { useState, useEffect } from "react";
 import type { components } from "@/lib/backend/apiV1/schema";
 import { apiFetch } from "@/lib/backend/client";
+import { useEffect, useState } from "react";
 
-type CommentDto = components["schemas"]["CommentDto"];
+type ReviewDto = components["schemas"]["ReviewDto"];
 
-export function useComment(id: number) {
-  const [comment, setComment] = useState<CommentDto | null>(null);
+export function useReview(id: number) {
+  const [review, setReview] = useState<ReviewDto | null>(null);
 
   useEffect(() => {
     let isCancelled = false;
 
-    apiFetch(`/api/v1/comments/${id}`)
+    apiFetch(`/api/v1/reviews/${id}`)
       .then((data) => {
         if (!isCancelled) {
-          setComment(data);
+          setReview(data);
         }
       })
       .catch((error) => {
@@ -27,8 +27,8 @@ export function useComment(id: number) {
     };
   }, [id]);
 
-  const deleteComment = (onSuccess: () => void) => {
-    apiFetch(`/api/v1/comments/${id}`, {
+  const deleteReview = (onSuccess: () => void) => {
+    apiFetch(`/api/v1/reviews/${id}`, {
       method: "DELETE",
     })
       .then(onSuccess)
@@ -38,7 +38,7 @@ export function useComment(id: number) {
   };
 
   const verifyPassword = async (password: string) => {
-    return apiFetch(`/api/v1/comments/${id}/verify-password`, {
+    return apiFetch(`/api/v1/reviews/${id}/verify-password`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",  // ✅ JSON 명시
@@ -56,5 +56,5 @@ export function useComment(id: number) {
   };
   
 
-  return { id, comment, deleteComment, verifyPassword };
+  return { id, review, deleteReview, verifyPassword };
 }

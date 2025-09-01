@@ -60,7 +60,7 @@ const validateContent = (content: string): string | null => {
   return null;
 };
 
-export function CommentCreateForm() {
+export function ReviewCreateForm() {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [email, setEmail] = useState("");
@@ -346,7 +346,7 @@ export function CommentCreateForm() {
         cityName: selectedCity?.name ?? "",
       };
 
-      const res = await fetch("/api/v1/comments", {
+      const res = await fetch("/api/v1/reviews", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -360,7 +360,7 @@ export function CommentCreateForm() {
       }
 
       // 성공 시 페이지 이동
-      router.push("/comments");
+      router.push("/reviews");
     } catch (err: any) {
       console.error("제출 오류:", err);
       setError(

@@ -1,5 +1,4 @@
-import React from "react";
-import { Home, Search, ShoppingBag, Menu, User } from "lucide-react"; // ← User 추가
+import { Home, Menu, Search, ShoppingBag, User } from "lucide-react"; // ← User 추가
 import Link from "next/link";
 
 export default function NavBar() {
@@ -21,11 +20,10 @@ export default function NavBar() {
         <Link href="/">
           <Home className="w-6 h-6" />
         </Link>
-        
-        <Link href="/comments">
+
+        <Link href="/reviews">
           <Menu className="w-6 h-6" />
         </Link>
-
 
         <Link href="/user">
           <User className="w-6 h-6" />

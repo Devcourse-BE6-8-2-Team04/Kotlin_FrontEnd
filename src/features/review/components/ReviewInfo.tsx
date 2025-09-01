@@ -3,32 +3,32 @@
 import { AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useComment } from "../hooks/useComment";
+import { useReview } from "../hooks/useReview";
 import ConfirmModal from "../modals/ConfirmModal";
 import PasswordModal from "../modals/PasswordModal";
-import { CommentCard } from "./CommentCard";
-import { CommentHeader } from "./CommentHeader";
 import { LoadingSpinner } from "./LoadingSpinner";
+import { ReviewCard } from "./ReviewCard";
+import { ReviewHeader } from "./ReviewHeader";
 
-interface CommentInfoProps {
-  commentState: ReturnType<typeof useComment>;
+interface ReviewInfoProps {
+  reviewState: ReturnType<typeof useReview>;
 }
 
-export function CommentInfo({ commentState }: CommentInfoProps) {
+export function ReviewInfo({ reviewState }: ReviewInfoProps) {
   const router = useRouter();
-  const { comment, deleteComment, verifyPassword } = commentState;
+  const { review, deleteReview, verifyPassword } = reviewState;
   const [showPwModal, setShowPwModal] = useState<"delete" | "edit" | null>(
     null
   );
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  if (comment == null) {
+  if (review == null) {
     return <LoadingSpinner />;
   }
 
   const executeDelete = () => {
-    deleteComment(() => router.back());
+    deleteReview(() => router.back());
     setShowConfirmModal(false);
   };
 
@@ -44,7 +44,7 @@ export function CommentInfo({ commentState }: CommentInfoProps) {
         const isValid = await verifyPassword(pw);
         if (isValid) {
           setShowPwModal(null);
-          // router.push(`/comments/edit/${id}`);
+          // router.push(`/reviews/edit/${id}`);
         }
       }
     } catch (err: any) {
@@ -55,13 +55,13 @@ export function CommentInfo({ commentState }: CommentInfoProps) {
 
   return (
     <div className="min-h-screen bg-white pb-[73px]">
-      <CommentHeader
+      <ReviewHeader
         onEdit={() => setShowPwModal("edit")}
         onDelete={() => setShowPwModal("delete")}
       />
 
       <div className="px-3 py-3 max-w-4xl mx-auto">
-        <CommentCard comment={comment} />
+        <ReviewCard review={review} />
       </div>
 
       {showPwModal && (
@@ -73,7 +73,7 @@ export function CommentInfo({ commentState }: CommentInfoProps) {
 
       {showConfirmModal && (
         <ConfirmModal
-          message={`${comment.id}번 글을 정말 삭제하시겠습니까?`}
+          message={`${review.id}번 글을 정말 삭제하시겠습니까?`}
           onConfirm={executeDelete}
           onCancel={() => setShowConfirmModal(false)}
         />

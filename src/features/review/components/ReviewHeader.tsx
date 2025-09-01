@@ -4,12 +4,12 @@ import { ChevronLeft, Edit, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-interface CommentHeaderProps {
+interface ReviewHeaderProps {
   onEdit: () => void;
   onDelete: () => void;
 }
 
-export function CommentHeader({ onEdit, onDelete }: CommentHeaderProps) {
+export function ReviewHeader({ onEdit, onDelete }: ReviewHeaderProps) {
   const router = useRouter();
 
   return (
@@ -23,7 +23,7 @@ export function CommentHeader({ onEdit, onDelete }: CommentHeaderProps) {
         </button>
 
         <Link
-          href="/comments"
+          href="/reviews"
           className="absolute left-1/2 transform -translate-x-1/2 text-xl md:text-2xl font-bold text-black"
         >
           WearLog

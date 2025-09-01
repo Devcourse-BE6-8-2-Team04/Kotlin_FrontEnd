@@ -1,11 +1,10 @@
+"use client";
 
-'use client';
-
-import React from 'react';
-import WeatherResults from './WeatherResults';
-import ClothResults from './ClothResults';
-import CommentsLink from './CommentsLink';
-import { ClothApiResponse, WeatherApiResponse } from '@/app/plan/types';
+import { ClothApiResponse, WeatherApiResponse } from "@/app/plan/types";
+import React from "react";
+import ClothResults from "./ClothResults";
+import ReviewsLink from "./ReviewsLink";
+import WeatherResults from "./WeatherResults";
 
 interface ResultsDisplayProps {
   isLoading: boolean;
@@ -46,7 +45,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     <div className="w-full h-full overflow-y-auto">
       <WeatherResults weatherData={weatherData} locationName={locationName} />
       <ClothResults clothData={clothData} />
-      <CommentsLink weatherData={weatherData} locationName={locationName} />
+      <ReviewsLink weatherData={weatherData} locationName={locationName} />
     </div>
   );
 };

@@ -6,19 +6,19 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { SearchFiltersType } from "../types";
 import { ActiveFilters } from "./ActiveFilters";
-import { Header } from "./CommentsHeader";
-import { CommentsList } from "./CommentsList";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { Pagination } from "./Pagination";
 import { ResultsCount } from "./ResultsCount";
+import { ReviewsHeader } from "./ReviewsHeader";
+import { ReviewsList } from "./ReviewsList";
 import { SearchFilters } from "./SearchFilters";
 
-type CommentDto = components["schemas"]["CommentDto"];
+type ReviewDto = components["schemas"]["ReviewDto"];
 
-export default function CommentsMain() {
+export default function ReviewsMain() {
   const searchParams = useSearchParams();
 
-  const [comments, setComments] = useState<CommentDto[] | null>(null);
+  const [reviews, setReviews] = useState<ReviewDto[] | null>(null);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
@@ -44,7 +44,7 @@ export default function CommentsMain() {
     return initialFilters;
   });
 
-  const fetchComments = async (
+  const fetchReviews = async (
     currentPage: number,
     searchFilters: SearchFiltersType
   ) => {
@@ -64,9 +64,9 @@ export default function CommentsMain() {
       params.append("month", searchFilters.month.toString());
     if (searchFilters.email) params.append("email", searchFilters.email);
 
-    apiFetch(`/api/v1/comments?${params}`)
+    apiFetch(`/api/v1/reviews?${params}`)
       .then((res) => {
-        setComments(res.content || []);
+        setReviews(res.content || []);
         setTotalPages(res.totalPages ?? 0);
         setTotalElements(res.totalElements);
       })
@@ -76,7 +76,7 @@ export default function CommentsMain() {
   };
 
   useEffect(() => {
-    fetchComments(page, filters);
+    fetchReviews(page, filters);
   }, [page, filters]);
 
   const handleFiltersChange = (newFilters: SearchFiltersType) => {
@@ -86,13 +86,13 @@ export default function CommentsMain() {
 
   const hasActiveFilters = Object.keys(filters).length > 0;
 
-  if (comments === null) {
+  if (reviews === null) {
     return <LoadingSpinner />;
   }
 
   return (
     <div className="min-h-screen bg-white pb-[73px]">
-      <Header />
+      <ReviewsHeader />
 
       <div className="px-3 py-4 max-w-4xl mx-auto">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mb-4 overflow-hidden">
@@ -111,8 +111,8 @@ export default function CommentsMain() {
           hasActiveFilters={hasActiveFilters}
         />
 
-        <CommentsList
-          comments={comments}
+        <ReviewsList
+          reviews={reviews}
           totalElements={totalElements}
           page={page}
         />

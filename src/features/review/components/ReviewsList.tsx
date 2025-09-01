@@ -2,22 +2,22 @@
 
 import type { components } from "@/lib/backend/apiV1/schema";
 import { Search } from "lucide-react";
-import { CommentItem } from "./CommentItem";
+import { ReviewItem } from "./ReviewItem";
 
-type CommentDto = components["schemas"]["CommentDto"];
+type ReviewDto = components["schemas"]["ReviewDto"];
 
-interface CommentsListProps {
-  comments: CommentDto[];
+interface ReviewsListProps {
+  reviews: ReviewDto[];
   totalElements: number;
   page: number;
 }
 
-export function CommentsList({
-  comments,
+export function ReviewsList({
+  reviews,
   totalElements,
   page,
-}: CommentsListProps) {
-  if (comments.length === 0) {
+}: ReviewsListProps) {
+  if (reviews.length === 0) {
     return (
       <div className="text-center py-16">
         <div className="text-gray-400 mb-4">
@@ -25,7 +25,7 @@ export function CommentsList({
         </div>
         <p className="text-gray-600 text-lg font-medium">글이 없습니다</p>
         <p className="text-gray-400 text-sm mt-2">
-          새로운 코멘트를 작성해보세요!
+          새로운 리뷰를 작성해보세요!
         </p>
       </div>
     );
@@ -33,10 +33,10 @@ export function CommentsList({
 
   return (
     <div className="space-y-3 mb-8">
-      {comments.map((comment, index) => (
-        <CommentItem
-          key={comment.id}
-          comment={comment}
+      {reviews.map((review, index) => (
+        <ReviewItem
+          key={review.id}
+          review={review}
           index={index}
           totalElements={totalElements}
           page={page}

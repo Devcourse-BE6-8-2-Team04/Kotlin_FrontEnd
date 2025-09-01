@@ -1,9 +1,9 @@
-import { CommentCreateForm } from "@/features/comment/components/CommentCreateForm";
+import { ReviewCreateForm } from "@/features/review/components/ReviewCreateForm";
 
 export default function CreatePage() {
   return (
     <main className="min-h-screen pb-[73px]">
-      <CommentCreateForm />
+      <ReviewCreateForm />
     </main>
   );
 }
