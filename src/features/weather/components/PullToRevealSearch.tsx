@@ -184,7 +184,11 @@ export default function PullToRevealSearch() {
   const handleSelectResult = async (location: GeoLocationDto) => {
     try {
       // 선택된 지역의 날씨 정보 조회
-      const weatherData = await getWeeklyWeather(location.lat, location.lon);
+      const weatherData = await getWeeklyWeather(
+        location.lat,
+        location.lon,
+        location.localName
+      );
 
       // 날씨 정보 업데이트 이벤트 발생
       window.dispatchEvent(

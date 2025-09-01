@@ -10,16 +10,22 @@ export type GeoLocationDto = components["schemas"]["GeoLocationDto"];
  * 
  * @param lat - 위도
  * @param lon - 경도
+ * @param location - 위치명 (선택사항)
  * @returns 주간 날씨 정보 배열
  */
 export const getWeeklyWeather = async (
   lat: number,
-  lon: number
+  lon: number,
+  location?: string
 ): Promise<WeatherInfoDto[]> => {
   const params = new URLSearchParams({
     lat: lat.toString(),
     lon: lon.toString(),
   });
+
+  if (location) {
+    params.append('location', location);
+  }
 
   return apiFetch(`/api/v1/weathers?${params}`);
 };
