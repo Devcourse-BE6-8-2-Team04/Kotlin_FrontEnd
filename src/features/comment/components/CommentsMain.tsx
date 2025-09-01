@@ -91,11 +91,11 @@ export default function CommentsMain() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-[73px]">
+    <div className="min-h-screen bg-white pb-[73px]">
       <Header />
 
-      <div className="px-4 py-6 max-w-4xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mb-6 overflow-hidden">
+      <div className="px-3 py-4 max-w-4xl mx-auto">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mb-4 overflow-hidden">
           <SearchFilters
             onFiltersChange={handleFiltersChange}
             initialFilters={filters}
