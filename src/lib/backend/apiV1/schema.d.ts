@@ -4,7 +4,59 @@
  */
 
 export interface paths {
-    "/api/v1/comments/{id}/verify-password": {
+    "/api/v1/reviews/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 리뷰 단건 조회
+         * @description ID로 리뷰를 조회합니다.
+         */
+        get: operations["getReview"];
+        /**
+         * 리뷰 수정
+         * @description 리뷰를 수정합니다.
+         */
+        put: operations["modifyReview"];
+        post?: never;
+        /**
+         * 리뷰 삭제
+         * @description 리뷰를 삭제합니다.
+         */
+        delete: operations["deleteReview"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 리뷰 다건 조회
+         * @description 필터링된 리뷰 목록을 조회합니다.
+         */
+        get: operations["getReviews"];
+        put?: never;
+        /**
+         * 리뷰 작성
+         * @description 새로운 리뷰를 작성합니다.
+         */
+        post: operations["createReview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reviews/{id}/verify-password": {
         parameters: {
             query?: never;
             header?: never;
@@ -14,10 +66,26 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * 커멘트 비밀번호 검증
-         * @description 커멘트의 비밀번호를 검증합니다.
+         * 리뷰 비밀번호 검증
+         * @description 리뷰의 비밀번호를 검증합니다.
          */
         post: operations["verifyPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/images/upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["uploadImage"];
         delete?: never;
         options?: never;
         head?: never;
@@ -84,6 +152,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/images/file/{filename}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getImage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/geos": {
         parameters: {
             query?: never;
@@ -99,50 +183,6 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/comments": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * 커멘트 다건 조회
-         * @description 필터링된 커멘트 목록을 조회합니다.
-         */
-        get: operations["getComments"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/comments/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * 커멘트 단건 조회
-         * @description ID로 커멘트를 조회합니다.
-         */
-        get: operations["getComment"];
-        put?: never;
-        post?: never;
-        /**
-         * 커멘트 삭제
-         * @description 커멘트를 삭제합니다.
-         */
-        delete: operations["deleteComment"];
         options?: never;
         head?: never;
         patch?: never;
@@ -188,20 +228,37 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        verifyPasswordReqBody: {
-            password?: string;
+        ModifyReviewReqBody: {
+            title: string;
+            sentence: string;
+            tagString?: string;
+            imageUrl?: string;
+            countryCode: string;
+            cityName: string;
+            /** Format: date */
+            date: string;
         };
-        RsDataBoolean: {
-            resultCode?: string;
-            msg?: string;
-            data?: boolean;
+        ReviewDto: {
+            /** Format: int32 */
+            id: number;
+            email: string;
+            imageUrl?: string;
+            title: string;
+            sentence: string;
+            tagString?: string;
+            weatherInfoDto: components["schemas"]["WeatherInfoDto"];
+        };
+        RsDataReviewDto: {
+            resultCode: string;
+            msg: string;
+            data: components["schemas"]["ReviewDto"];
         };
         WeatherInfoDto: {
             /** Format: int32 */
             id: number;
             weather: string;
             /** Format: int32 */
-            weatherCode?: number;
+            weatherCode: number;
             weatherDescription?: string;
             /** Format: double */
             dailyTemperatureGap: number;
@@ -229,108 +286,91 @@ export interface components {
             /** Format: date */
             date: string;
         };
+        CreateReviewReqBody: {
+            email: string;
+            password: string;
+            title: string;
+            sentence: string;
+            tagString?: string;
+            imageUrl?: string;
+            countryCode: string;
+            cityName: string;
+            /** Format: date */
+            date: string;
+        };
+        VerifyPasswordReqBody: {
+            password: string;
+        };
+        RsDataBoolean: {
+            resultCode: string;
+            msg: string;
+            data: boolean;
+        };
+        PageDtoReviewDto: {
+            content: components["schemas"]["ReviewDto"][];
+            pageable: components["schemas"]["PageableDto"];
+        };
+        PageableDto: {
+            /** Format: int32 */
+            currentPageNumber: number;
+            /** Format: int32 */
+            pageSize: number;
+            /** Format: int32 */
+            totalPages: number;
+            /** Format: int64 */
+            totalElements: number;
+            /** Format: int32 */
+            numberOfElements: number;
+            /** Format: int64 */
+            offset: number;
+            isSorted: boolean;
+        };
         GeoLocationDto: {
-            name: string;
-            country: string;
+            name?: string;
+            country?: string;
             /** Format: double */
             lat: number;
             /** Format: double */
             lon: number;
             localName?: string;
         };
-        Pageable: {
-            /** Format: int32 */
-            page?: number;
-            /** Format: int32 */
-            size?: number;
-            sort?: string[];
-        };
-        CommentDto: {
-            /** Format: int32 */
-            id: number;
-            email: string;
-            imageUrl?: string;
-            title: string;
-            sentence: string;
-            tagString: string;
-            weatherInfoDto: components["schemas"]["WeatherInfoDto"];
-        };
-        PageCommentDto: {
-            /** Format: int32 */
-            totalPages?: number;
-            /** Format: int64 */
-            totalElements?: number;
-            /** Format: int32 */
-            size?: number;
-            content?: components["schemas"]["CommentDto"][];
-            /** Format: int32 */
-            number?: number;
-            sort?: components["schemas"]["SortObject"];
-            /** Format: int32 */
-            numberOfElements?: number;
-            pageable?: components["schemas"]["PageableObject"];
-            first?: boolean;
-            last?: boolean;
-            empty?: boolean;
-        };
-        PageableObject: {
-            /** Format: int64 */
-            offset?: number;
-            sort?: components["schemas"]["SortObject"];
-            /** Format: int32 */
-            pageNumber?: number;
-            /** Format: int32 */
-            pageSize?: number;
-            paged?: boolean;
-            unpaged?: boolean;
-        };
-        SortObject: {
-            empty?: boolean;
-            sorted?: boolean;
-            unsorted?: boolean;
-        };
-        TripSchedule: {
+        TripScheduleDto: {
             /** Format: date */
             start?: string;
             /** Format: date */
             end?: string;
             /** Format: double */
-            lat?: number;
+            lat: number;
             /** Format: double */
-            lon?: number;
+            lon: number;
         };
         Clothing: unknown;
-        OutfitResponse: {
-            clothes?: {
+        OutfitResponseDto: {
+            clothes: {
                 [key: string]: components["schemas"]["Clothing"][];
             };
-            extraClothes?: {
+            extraClothes: {
                 [key: string]: components["schemas"]["Clothing"][];
             };
         };
         CategoryClothDto: {
-            clothName?: string;
-            imageUrl?: string;
+            clothName: string;
+            imageUrl: string;
             /** @enum {string} */
-            category?: "CASUAL_DAILY" | "FORMAL_OFFICE" | "OUTDOOR" | "DATE_LOOK" | "EXTRA";
+            category: "CASUAL_DAILY" | "FORMAL_OFFICE" | "OUTDOOR" | "DATE_LOOK" | "EXTRA";
         };
         ExtraClothDto: {
             /** Format: int32 */
-            id?: number;
-            clothName?: string;
-            imageUrl?: string;
+            id: number;
+            clothName: string;
+            imageUrl: string;
             /** @enum {string} */
-            weather?: "THUNDERSTORM_LIGHT_RAIN" | "THUNDERSTORM_RAIN" | "THUNDERSTORM_HEAVY_RAIN" | "LIGHT_THUNDERSTORM" | "THUNDERSTORM" | "HEAVY_THUNDERSTORM" | "RAGGED_THUNDERSTORM" | "THUNDERSTORM_LIGHT_DRIZZLE" | "THUNDERSTORM_DRIZZLE" | "THUNDERSTORM_HEAVY_DRIZZLE" | "LIGHT_DRIZZLE" | "DRIZZLE" | "HEAVY_DRIZZLE" | "LIGHT_DRIZZLE_RAIN" | "DRIZZLE_RAIN" | "HEAVY_DRIZZLE_RAIN" | "SHOWER_RAIN_AND_DRIZZLE" | "HEAVY_SHOWER_RAIN_AND_DRIZZLE" | "SHOWER_DRIZZLE" | "LIGHT_RAIN" | "MODERATE_RAIN" | "HEAVY_RAIN" | "VERY_HEAVY_RAIN" | "EXTREME_RAIN" | "FREEZING_RAIN" | "LIGHT_SHOWER_RAIN" | "SHOWER_RAIN" | "HEAVY_SHOWER_RAIN" | "RAGGED_SHOWER_RAIN" | "LIGHT_SNOW" | "SNOW" | "HEAVY_SNOW" | "SLEET" | "LIGHT_SHOWER_SLEET" | "SHOWER_SLEET" | "LIGHT_RAIN_AND_SNOW" | "RAIN_AND_SNOW" | "LIGHT_SHOWER_SNOW" | "SHOWER_SNOW" | "HEAVY_SHOWER_SNOW" | "MIST" | "SMOKE" | "HAZE" | "SAND_DUST_WHIRLS" | "FOG" | "SAND" | "DUST" | "VOLCANIC_ASH" | "SQUALLS" | "TORNADO" | "CLEAR_SKY" | "FEW_CLOUDS" | "SCATTERED_CLOUDS" | "BROKEN_CLOUDS" | "OVERCAST_CLOUDS" | "HEAT_WAVE";
+            weather: "THUNDERSTORM_LIGHT_RAIN" | "THUNDERSTORM_RAIN" | "THUNDERSTORM_HEAVY_RAIN" | "LIGHT_THUNDERSTORM" | "THUNDERSTORM" | "HEAVY_THUNDERSTORM" | "RAGGED_THUNDERSTORM" | "THUNDERSTORM_LIGHT_DRIZZLE" | "THUNDERSTORM_DRIZZLE" | "THUNDERSTORM_HEAVY_DRIZZLE" | "LIGHT_DRIZZLE" | "DRIZZLE" | "HEAVY_DRIZZLE" | "LIGHT_DRIZZLE_RAIN" | "DRIZZLE_RAIN" | "HEAVY_DRIZZLE_RAIN" | "SHOWER_RAIN_AND_DRIZZLE" | "HEAVY_SHOWER_RAIN_AND_DRIZZLE" | "SHOWER_DRIZZLE" | "LIGHT_RAIN" | "MODERATE_RAIN" | "HEAVY_RAIN" | "VERY_HEAVY_RAIN" | "EXTREME_RAIN" | "FREEZING_RAIN" | "LIGHT_SHOWER_RAIN" | "SHOWER_RAIN" | "HEAVY_SHOWER_RAIN" | "RAGGED_SHOWER_RAIN" | "LIGHT_SNOW" | "SNOW" | "HEAVY_SNOW" | "SLEET" | "LIGHT_SHOWER_SLEET" | "SHOWER_SLEET" | "LIGHT_RAIN_AND_SNOW" | "RAIN_AND_SNOW" | "LIGHT_SHOWER_SNOW" | "SHOWER_SNOW" | "HEAVY_SHOWER_SNOW" | "MIST" | "SMOKE" | "HAZE" | "SAND_DUST_WHIRLS" | "FOG" | "SAND" | "DUST" | "VOLCANIC_ASH" | "SQUALLS" | "TORNADO" | "CLEAR_SKY" | "FEW_CLOUDS" | "SCATTERED_CLOUDS" | "BROKEN_CLOUDS" | "OVERCAST_CLOUDS" | "HEAT_WAVE";
         };
         WeatherClothResponseDto: {
-            weatherInfo?: components["schemas"]["WeatherInfoDto"];
-            clothList?: components["schemas"]["CategoryClothDto"][];
-            extraCloth?: components["schemas"]["ExtraClothDto"][];
-        };
-        RsDataCommentDto: {
-            resultCode?: string;
-            msg?: string;
-            data?: components["schemas"]["CommentDto"];
+            weatherInfo: components["schemas"]["WeatherInfoDto"];
+            clothList: components["schemas"]["CategoryClothDto"][];
+            extraCloth: components["schemas"]["ExtraClothDto"][];
         };
     };
     responses: never;
@@ -341,6 +381,129 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    getReview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ReviewDto"];
+                };
+            };
+        };
+    };
+    modifyReview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModifyReviewReqBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RsDataReviewDto"];
+                };
+            };
+        };
+    };
+    deleteReview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RsDataReviewDto"];
+                };
+            };
+        };
+    };
+    getReviews: {
+        parameters: {
+            query?: {
+                location?: string;
+                date?: string;
+                feelsLikeTemperature?: number;
+                month?: number;
+                email?: string;
+                page?: number;
+                pageSize?: number;
+                sort?: "ID" | "ID_ASC" | "EMAIL" | "EMAIL_ASC" | "DATE" | "DATE_ASC" | "LOCATION" | "LOCATION_ASC";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PageDtoReviewDto"];
+                };
+            };
+        };
+    };
+    createReview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateReviewReqBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RsDataReviewDto"];
+                };
+            };
+        };
+    };
     verifyPassword: {
         parameters: {
             query?: never;
@@ -352,7 +515,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["verifyPasswordReqBody"];
+                "application/json": components["schemas"]["VerifyPasswordReqBody"];
             };
         };
         responses: {
@@ -367,9 +530,37 @@ export interface operations {
             };
         };
     };
+    uploadImage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** Format: binary */
+                    image: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": Record<string, never>;
+                };
+            };
+        };
+    };
     getWeeklyWeather: {
         parameters: {
             query: {
+                location?: string;
                 lat: number;
                 lon: number;
             };
@@ -441,6 +632,26 @@ export interface operations {
             };
         };
     };
+    getImage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": Record<string, never>;
+                };
+            };
+        };
+    };
     getGeoLocations: {
         parameters: {
             query: {
@@ -463,80 +674,10 @@ export interface operations {
             };
         };
     };
-    getComments: {
-        parameters: {
-            query: {
-                location?: string;
-                date?: string;
-                feelsLikeTemperature?: number;
-                month?: number;
-                pageable: components["schemas"]["Pageable"];
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["PageCommentDto"];
-                };
-            };
-        };
-    };
-    getComment: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["CommentDto"];
-                };
-            };
-        };
-    };
-    deleteComment: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["RsDataCommentDto"];
-                };
-            };
-        };
-    };
     getOutfitWithPeriod: {
         parameters: {
             query: {
-                tripSchedule: components["schemas"]["TripSchedule"];
+                tripSchedule: components["schemas"]["TripScheduleDto"];
             };
             header?: never;
             path?: never;
@@ -550,7 +691,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["OutfitResponse"];
+                    "*/*": components["schemas"]["OutfitResponseDto"];
                 };
             };
         };
@@ -558,15 +699,7 @@ export interface operations {
     getClothDetails: {
         parameters: {
             query: {
-                /**
-                 * @description 위도
-                 * @example 37.5
-                 */
                 latitude: number;
-                /**
-                 * @description 경도
-                 * @example 127
-                 */
                 longitude: number;
             };
             header?: never;
