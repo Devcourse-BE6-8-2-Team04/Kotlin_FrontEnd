@@ -3,10 +3,8 @@
 import {
   GeoLocationDto,
   getGeoLocations,
-  getWeatherByDate,
 } from "@/lib/backend/apiV1/weatherService";
 import {
-  CalendarDays,
   ChevronLeft,
   ImagePlus,
   Loader2,
@@ -14,7 +12,6 @@ import {
   Mail,
   MapPin,
   Plus,
-  Thermometer,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
@@ -44,15 +41,11 @@ export function CommentCreateForm() {
   >([]);
   const [selectedCity, setSelectedCity] = useState<GeoLocationDto | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [feelsLikeTemperature, setFeelsLikeTemperature] = useState("");
-  const [month, setMonth] = useState("");
   const [date, setDate] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
   const [content, setContent] = useState("");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [isLoadingWeather, setIsLoadingWeather] = useState(false);
-  const [weatherError, setWeatherError] = useState("");
   const [isLoadingCities, setIsLoadingCities] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -105,33 +98,6 @@ export function CommentCreateForm() {
     };
   }, [location]);
 
-  useEffect(() => {
-    async function fetchWeather() {
-      if (!selectedCity || !date) {
-        setFeelsLikeTemperature("");
-        return;
-      }
-      setIsLoadingWeather(true);
-      setWeatherError("");
-      try {
-        const weatherData = await getWeatherByDate(
-          date,
-          selectedCity.lat,
-          selectedCity.lon
-        );
-        if (weatherData.feelsLikeTemperature === null)
-          throw new Error("날씨 정보를 가져올 수 없습니다.");
-        setFeelsLikeTemperature(String(weatherData.feelsLikeTemperature));
-      } catch (err: any) {
-        setFeelsLikeTemperature("");
-        setWeatherError(err.message || "날씨 정보를 가져올 수 없습니다.");
-      } finally {
-        setIsLoadingWeather(false);
-      }
-    }
-    fetchWeather();
-  }, [selectedCity, date]);
-
   // 이미지 파일 선택 → 서버에 업로드 → imageUrl에 URL 저장
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -176,12 +142,9 @@ export function CommentCreateForm() {
         title,
         email,
         password,
-        location,
-        feelsLikeTemperature,
-        month,
         date,
         sentence: content,
-        tagString: tags.join(" "),
+        tagString: tags.join(""),
         imageUrl, // 이미지 URL만 저장!
         countryCode: selectedCity?.country ?? "",
         cityName: selectedCity?.name ?? "",
@@ -336,38 +299,6 @@ export function CommentCreateForm() {
               )}
             </div>
           )}
-        </div>
-        <div className="flex items-center gap-2 px-4 py-3 rounded-lg border border-blue-100 bg-blue-50">
-          <Thermometer size={22} className="text-blue-500 flex-shrink-0" />
-          <input
-            type="number"
-            placeholder="체감온도(°C)"
-            className="bg-transparent focus:outline-none text-sm w-32 placeholder-gray-400 focus:placeholder-blue-400 focus:bg-white"
-            value={feelsLikeTemperature}
-            readOnly
-            required
-            style={{ color: "#222" }}
-          />
-          {isLoadingWeather && (
-            <Loader2 className="animate-spin text-gray-400 ml-2" size={16} />
-          )}
-          {weatherError && (
-            <span className="text-xs text-red-500 ml-2">{weatherError}</span>
-          )}
-        </div>
-        <div className="flex items-center gap-2 px-4 py-3 rounded-lg border border-gray-200 bg-gray-50">
-          <CalendarDays size={22} className="text-blue-500 flex-shrink-0" />
-          <input
-            type="number"
-            min={1}
-            max={12}
-            placeholder="월"
-            className="bg-transparent focus:outline-none text-sm w-20 placeholder-gray-400 focus:placeholder-blue-400 focus:bg-white"
-            value={month}
-            onChange={(e) => setMonth(e.target.value)}
-            required
-            style={{ color: "#222" }}
-          />
         </div>
       </div>
 
