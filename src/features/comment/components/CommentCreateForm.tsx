@@ -435,13 +435,18 @@ export function CommentCreateForm() {
           {tags.map((tag) => (
             <span
               key={tag}
-              className="bg-blue-100 text-blue-900 px-3 py-1 rounded-full text-xs cursor-pointer border border-blue-200 shadow-sm"
+              className="group bg-blue-100 text-blue-900 px-3 py-1 rounded-full text-xs border border-blue-200 shadow-sm flex items-center gap-1 hover:bg-blue-200 transition-colors"
               onClick={() => handleTagRemove(tag)}
             >
-              #{tag}
+              {tag}
             </span>
           ))}
         </div>
+        {tags.length > 0 && (
+          <p className="text-xs text-gray-500 mt-1">
+            태그를 클릭해서 제거할 수 있습니다
+          </p>
+        )}
       </div>
 
       {/* 이미지 업로드/미리보기 */}
