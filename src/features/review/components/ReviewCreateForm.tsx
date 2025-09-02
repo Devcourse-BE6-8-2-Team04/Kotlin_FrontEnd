@@ -62,6 +62,7 @@ const validateContent = (content: string): string | null => {
 
 export function ReviewCreateForm() {
   const router = useRouter();
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [title, setTitle] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -301,12 +302,14 @@ export function ReviewCreateForm() {
     // 전체 유효성 검사
     const newErrors: typeof errors = {};
 
-    const emailError = validateEmail(email);
-    if (emailError) newErrors.email = emailError;
+    // 비로그인 상태일 때만 이메일/비밀번호 검사
+    if (!isLoggedIn) {
+      const emailError = validateEmail(email);
+      if (emailError) newErrors.email = emailError;
 
-    const passwordError = validatePassword(password);
-    if (passwordError) newErrors.password = passwordError;
-
+      const passwordError = validatePassword(password);
+      if (passwordError) newErrors.password = passwordError;
+    }
     const titleError = validateTitle(title);
     if (titleError) newErrors.title = titleError;
 
@@ -336,8 +339,8 @@ export function ReviewCreateForm() {
     try {
       const body = {
         title,
-        email,
-        password,
+        email: isLoggedIn ? null : email,
+        password: isLoggedIn ? null : password,
         date,
         sentence: content,
         tagString: tags.join(""),
@@ -378,21 +381,25 @@ export function ReviewCreateForm() {
     <div className="bg-white">
       {/* 헤더 */}
       <div className="sticky top-0 bg-white border-b border-gray-100 z-10">
-        <div className="flex items-center justify-between px-4 py-3">
+        <div className="relative flex items-center px-4 py-3">
           <button
             type="button"
             onClick={() => router.back()}
-            className="p-2 -ml-2"
+            className="p-2 -ml-1"
             disabled={isSubmitting}
           >
             <X size={24} className="text-gray-600" />
           </button>
-          <h1 className="text-lg font-medium text-gray-900">글쓰기</h1>
+
+          <h1 className="absolute left-1/2 transform -translate-x-1/2 text-lg font-medium text-gray-900">
+            글쓰기
+          </h1>
+
           <button
             type="button"
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="px-4 py-1.5 bg-black text-white text-sm font-medium rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
+            className="ml-auto px-4 py-1.5 bg-black text-white text-sm font-medium rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (
               <div className="flex items-center gap-1">
@@ -406,7 +413,7 @@ export function ReviewCreateForm() {
         </div>
       </div>
 
-      <div className="px-4 py-6">
+      <div className="px-4 pt-5">
         {/* 일반적인 에러 메시지 */}
         {errors.general && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -418,58 +425,69 @@ export function ReviewCreateForm() {
         )}
 
         <div className="flex flex-col md:flex-row gap-2">
-          {/* 이메일 */}
-          <div className="flex-1">
-            <div className="flex items-center rounded-lg border px-3 py-2 focus-within:border-blue-400 transition-all duration-150 border-gray-200">
-              <Mail size={18} className="mr-2 text-black" />
-              <input
-                ref={emailRef}
-                type="email"
-                placeholder="이메일"
-                className="w-full text-sm focus:outline-none placeholder-gray-400"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  clearError("email");
-                }}
-                required
-                style={{ color: "#222" }}
-              />
-            </div>
-            {errors.email && (
-              <div className="flex items-center gap-2 mt-1 px-1">
-                <AlertCircle size={14} className="text-red-500 flex-shrink-0" />
-                <p className="text-xs text-red-600">{errors.email}</p>
+          {/* 비로그인 상태일 때만 이메일/비밀번호 표시 */}
+          {!isLoggedIn && (
+            <>
+              {/* 이메일 */}
+              <div className="flex-1">
+                <div className="flex items-center rounded-lg border px-3 py-2 focus-within:border-blue-400 transition-all duration-150 border-gray-200">
+                  <Mail size={18} className="mr-2 text-black" />
+                  <input
+                    ref={emailRef}
+                    type="email"
+                    placeholder="이메일"
+                    className="w-full text-sm focus:outline-none placeholder-gray-400"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      clearError("email");
+                    }}
+                    required
+                    style={{ color: "#222" }}
+                  />
+                </div>
+                {errors.email && (
+                  <div className="flex items-center gap-2 mt-1 px-1">
+                    <AlertCircle
+                      size={14}
+                      className="text-red-500 flex-shrink-0"
+                    />
+                    <p className="text-xs text-red-600">{errors.email}</p>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
 
-          {/* 비밀번호 */}
-          <div className="flex-1">
-            <div className="flex items-center rounded-lg border px-3 py-2 focus-within:border-blue-400 transition-all duration-150 border-gray-200">
-              <Lock size={18} className="mr-2 text-black" />
-              <input
-                ref={passwordRef}
-                type="password"
-                placeholder="비밀번호"
-                className="w-full text-sm focus:outline-none placeholder-gray-400"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  clearError("password");
-                }}
-                required
-                autoComplete="new-password"
-                style={{ color: "#222" }}
-              />
-            </div>
-            {errors.password && (
-              <div className="flex items-center gap-2 mt-1 px-1">
-                <AlertCircle size={14} className="text-red-500 flex-shrink-0" />
-                <p className="text-xs text-red-600">{errors.password}</p>
+              {/* 비밀번호 */}
+              <div className="flex-1">
+                <div className="flex items-center rounded-lg border px-3 py-2 focus-within:border-blue-400 transition-all duration-150 border-gray-200">
+                  <Lock size={18} className="mr-2 text-black" />
+                  <input
+                    ref={passwordRef}
+                    type="password"
+                    placeholder="비밀번호"
+                    className="w-full text-sm focus:outline-none placeholder-gray-400"
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      clearError("password");
+                    }}
+                    required
+                    autoComplete="new-password"
+                    style={{ color: "#222" }}
+                  />
+                </div>
+                {errors.password && (
+                  <div className="flex items-center gap-2 mt-1 px-1">
+                    <AlertCircle
+                      size={14}
+                      className="text-red-500 flex-shrink-0"
+                    />
+                    <p className="text-xs text-red-600">{errors.password}</p>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </>
+          )}
 
           {/* 날짜 선택 */}
           <div className="flex-1">
@@ -584,7 +602,7 @@ export function ReviewCreateForm() {
           <input
             ref={titleRef}
             type="text"
-            placeholder="제목은 2자부터 100자까지 가능해요."
+            placeholder="제목을 입력해주세요."
             className="w-full px-2 pt-4 pb-2 bg-white border-0 text-base font-medium placeholder-gray-400 resize-none focus:outline-none"
             value={title}
             onChange={(e) => {
@@ -605,8 +623,10 @@ export function ReviewCreateForm() {
         {/* 내용 */}
         <div>
           <textarea
-            placeholder="내용은 2자부터 500자까지 가능해요"
-            className="w-full px-2 py-4 bg-white border-0 text-base placeholder-gray-400 resize-none min-h-[290px] focus:outline-none"
+            placeholder={`여행지의 날씨나 분위기, 입었던 착장을\n자유롭게 작성해주세요!`}
+            className={`w-full px-2 py-4 bg-white border-0 text-base placeholder-gray-400 resize-none ${
+              isLoggedIn ? "min-h-[340px]" : "min-h-[250px]"
+            } focus:outline-none`}
             value={content}
             onChange={(e) => {
               setContent(e.target.value);
@@ -620,7 +640,7 @@ export function ReviewCreateForm() {
         </div>
 
         {/* 액션 버튼들 */}
-        <div className="mt-4 flex gap-2">
+        <div className="mt-4 flex justify-end mr-2 gap-2">
           {/* 태그 버튼 */}
           <button
             type="button"
