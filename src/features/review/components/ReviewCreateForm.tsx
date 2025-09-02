@@ -1,5 +1,6 @@
 "use client";
 
+import { components } from "@/lib/backend/apiV1/schema";
 import {
   GeoLocationDto,
   getGeoLocations,
@@ -13,10 +14,132 @@ import {
   Lock,
   Mail,
   MapPin,
+  Shirt,
   X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
+import type { Category, ClothName, Material, Style } from "../types";
+
+type ClothItemReqBody = components["schemas"]["ClothItemReqBody"];
+
+// 옷 데이터 정의
+const CLOTHNAME_BY_CATEGORIES = {
+  TOP: {
+    name: "상의",
+    items: [
+      { name: "T_SHIRT", label: "반팔" },
+      { name: "SWEATSHIRT", label: "맨투맨" },
+      { name: "HOODIE", label: "후드티" },
+      { name: "SHIRT", label: "셔츠" },
+      { name: "DRESS_SHIRT", label: "드레스 셔츠" },
+      { name: "BLOUSE", label: "블라우스" },
+      { name: "SWEATER", label: "스웨터" },
+      { name: "CARDIGAN", label: "가디건" },
+      { name: "COAT", label: "코트" },
+      { name: "JACKET", label: "자켓" },
+      { name: "LEATHER_JACKET", label: "가죽 자켓" },
+      { name: "DENIM_JACKET", label: "데님 자켓" },
+      { name: "BLAZER", label: "블레이저" },
+      { name: "PADDING", label: "패딩" },
+      { name: "VEST", label: "조끼" },
+      { name: "WINDBREAKER", label: "바람막이" },
+      { name: "FUNCTIONAL_T_SHIRT", label: "기능성 티셔츠" },
+    ],
+  },
+  BOTTOM: {
+    name: "하의",
+    items: [
+      { name: "JEANS", label: "청바지" },
+      { name: "SLACKS", label: "슬랙스" },
+      { name: "SHORTS", label: "반바지" },
+      { name: "SKIRT", label: "치마" },
+      { name: "JOGGER_PANTS", label: "조거 팬츠" },
+      { name: "TRACK_PANTS", label: "트랙 팬츠" },
+      { name: "LEGGINGS", label: "레깅스" },
+      { name: "CARGO_PANTS", label: "카고 바지" },
+      { name: "CORDUROY_PANTS", label: "골덴 바지" },
+      { name: "CHINOS", label: "치노스" },
+      { name: "SKI_PANTS", label: "스키 바지" },
+    ],
+  },
+  SHOES: {
+    name: "신발",
+    items: [
+      { name: "SNEAKERS", label: "스니커즈" },
+      { name: "ATHLETIC_SHOES", label: "운동화" },
+      { name: "FLATS", label: "플랫슈즈" },
+      { name: "HEELS", label: "하이힐" },
+      { name: "LOAFERS", label: "로퍼" },
+      { name: "SLIPPERS", label: "슬리퍼" },
+      { name: "LEATHER_BOOTS", label: "가죽 부츠" },
+      { name: "FUR_BOOTS", label: "털 부츠" },
+      { name: "RAIN_BOOTS", label: "장화" },
+      { name: "SANDALS", label: "샌들" },
+      { name: "OXFORDS", label: "옥스포드" },
+      { name: "HIKING_SHOES", label: "하이킹 신발" },
+      { name: "ANKLE_BOOTS", label: "앵클 부츠" },
+    ],
+  },
+  EXTRA: {
+    name: "기타",
+    items: [
+      { name: "HAT", label: "모자" },
+      { name: "CAP", label: "캡" },
+      { name: "BEANIE", label: "비니" },
+      { name: "SCARF", label: "목도리" },
+      { name: "GLOVES", label: "장갑" },
+      { name: "BELT", label: "벨트" },
+      { name: "BAG", label: "가방" },
+      { name: "BACKPACK", label: "백팩" },
+      { name: "CROSSBODY_BAG", label: "크로스백" },
+      { name: "SUNGLASSES", label: "선글라스" },
+      { name: "UMBRELLA", label: "우산" },
+      { name: "MASK", label: "마스크" },
+    ],
+  },
+};
+
+const STYLES = [
+  { name: "CASUAL_DAILY", label: "캐주얼 데일리" },
+  { name: "FORMAL_OFFICE", label: "포멀 오피스" },
+  { name: "OUTDOOR", label: "아웃도어" },
+  { name: "DATE_LOOK", label: "데이트 룩" },
+  { name: "EXTRA", label: "기타" },
+];
+
+// 카테고리별로 사용 가능한 재질 정의
+const MATERIALS_BY_CATEGORY = {
+  TOP: [
+    { name: "COTTON", label: "면" },
+    { name: "POLYESTER", label: "폴리에스터" },
+    { name: "WOOL", label: "울" },
+    { name: "LINEN", label: "린넨" },
+    { name: "NYLON", label: "나일론" },
+    { name: "DENIM", label: "데님" },
+    { name: "LEATHER", label: "가죽" },
+    { name: "FLEECE", label: "플리스" },
+    { name: "SILK", label: "실크" },
+    { name: "CASHMERE", label: "캐시미어" },
+    { name: "CORDUROY", label: "코듀로이" },
+  ],
+  BOTTOM: [
+    { name: "COTTON", label: "면" },
+    { name: "POLYESTER", label: "폴리에스터" },
+    { name: "WOOL", label: "울" },
+    { name: "LINEN", label: "린넨" },
+    { name: "NYLON", label: "나일론" },
+    { name: "DENIM", label: "데님" },
+    { name: "SILK", label: "실크" },
+    { name: "CORDUROY", label: "코듀로이" },
+  ],
+  SHOES: [
+    { name: "POLYESTER", label: "폴리에스터" },
+    { name: "NYLON", label: "나일론" },
+    { name: "LEATHER", label: "가죽" },
+  ],
+  EXTRA: [], // 기타는 재질 선택 불가
+};
 
 // 이미지 파일을 백엔드에 업로드하고 URL을 받아오는 함수
 async function uploadImageToServer(file: File): Promise<string> {
@@ -82,6 +205,19 @@ export function ReviewCreateForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
+  // 옷 관련 상태
+  const [showClothingModal, setShowClothingModal] = useState(false);
+  const [selectedClothing, setSelectedClothing] = useState<ClothItemReqBody[]>(
+    []
+  );
+  const [currentStep, setCurrentStep] = useState<
+    "category" | "item" | "detail"
+  >("category");
+  const [selectedCategory, setSelectedCategory] = useState<Category>();
+  const [selectedClothName, setSelectedClothName] = useState<ClothName>();
+  const [selectedStyle, setSelectedStyle] = useState<Style>(undefined);
+  const [selectedMaterial, setSelectedMaterial] = useState<Material>(undefined);
+
   // 에러 상태 관리
   const [errors, setErrors] = useState<{
     email?: string;
@@ -119,6 +255,51 @@ export function ReviewCreateForm() {
   // 에러 설정 헬퍼 함수
   const setError = (field: string, message: string) => {
     setErrors((prev) => ({ ...prev, [field]: message }));
+  };
+
+  // 옷 선택 관련 함수들
+  const handleClothingButtonClick = () => {
+    setShowClothingModal(true);
+    setCurrentStep("category");
+  };
+
+  const handleCategorySelect = (category: Category) => {
+    setSelectedCategory(category);
+    setCurrentStep("item");
+  };
+
+  const handleClothItemSelect = (clothName: ClothName) => {
+    setSelectedClothName(clothName);
+    setCurrentStep("detail");
+  };
+
+  const handleAddClothing = (isRecommend: boolean) => {
+    if (!selectedCategory || !selectedClothName) return;
+
+    const newClothingItem: ClothItemReqBody = {
+      clothName: selectedClothName,
+      category: selectedCategory,
+      style: selectedStyle || undefined,
+      material: selectedMaterial || undefined,
+      isRecommend,
+    };
+
+    setSelectedClothing((prev) => [...prev, newClothingItem]);
+
+    // 모달 닫기 및 상태 초기화
+    setShowClothingModal(false);
+    setCurrentStep("category");
+  };
+
+  const handleRemoveClothing = (clothName: ClothName) => {
+    setSelectedClothing((prev) =>
+      prev.filter((item) => item.clothName !== clothName)
+    );
+  };
+
+  const closeClothingModal = () => {
+    setShowClothingModal(false);
+    setCurrentStep("category");
   };
 
   useEffect(() => {
@@ -347,6 +528,13 @@ export function ReviewCreateForm() {
         imageUrl, // 이미지 URL만 저장!
         countryCode: selectedCity?.country ?? "",
         cityName: selectedCity?.name ?? "",
+        clothList: selectedClothing.map((item) => ({
+          clothName: item.clothName,
+          category: item.category,
+          style: item.style || null,
+          material: item.material || null,
+          isRecommend: item.isRecommend,
+        })),
       };
 
       const res = await fetch("/api/v1/reviews", {
@@ -641,6 +829,15 @@ export function ReviewCreateForm() {
 
         {/* 액션 버튼들 */}
         <div className="mt-4 flex justify-end mr-2 gap-2">
+          {/* 옷 추가 버튼 */}
+          <button
+            type="button"
+            onClick={handleClothingButtonClick}
+            className="flex items-center gap-1 text-sm px-3 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            <Shirt size={18} className="text-black" />옷 추가
+          </button>
+
           {/* 태그 버튼 */}
           <button
             type="button"
@@ -662,6 +859,43 @@ export function ReviewCreateForm() {
             이미지
           </button>
         </div>
+
+        {/* 선택된 옷 목록 */}
+        {selectedClothing.length > 0 && (
+          <div className="mt-3 p-4 border border-gray-200 rounded-lg bg-gray-50">
+            <h4 className="text-sm font-medium text-gray-700 mb-3">
+              선택된 옷 ({selectedClothing.length}개)
+            </h4>
+            <div className="flex flex-wrap gap-2">
+              {selectedClothing.map((item, index) => (
+                <div
+                  key={`${item.clothName}-${index}`}
+                  className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm flex items-center gap-1"
+                >
+                  <span
+                    className={
+                      item.isRecommend ? "text-blue-600" : "text-gray-600"
+                    }
+                  >
+                    {CLOTHNAME_BY_CATEGORIES[item.category]?.items.find(
+                      (cloth) => cloth.name === item.clothName
+                    )?.label || item.clothName}
+                  </span>
+                  {item.isRecommend && (
+                    <span className="text-blue-500">(추천)</span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveClothing(item.clothName)}
+                    className="ml-1 text-gray-400 hover:text-red-500 transition-colors"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* 태그 입력 UI */}
         {showTagInput && (
@@ -746,6 +980,202 @@ export function ReviewCreateForm() {
               >
                 <X size={16} />
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* 옷 선택 모달 */}
+        {showClothingModal && (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50">
+            <div className="bg-white rounded-t-lg sm:rounded-lg w-full max-w-md max-h-[80vh] overflow-hidden">
+              {/* 모달 헤더 */}
+              <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                <h3 className="text-lg font-medium text-gray-900">
+                  {currentStep === "category"
+                    ? "카테고리 선택"
+                    : currentStep === "item"
+                    ? CLOTHNAME_BY_CATEGORIES[selectedCategory!]?.name
+                    : "스타일 & 재질"}
+                </h3>
+                <button
+                  type="button"
+                  onClick={closeClothingModal}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <X size={20} className="text-gray-600" />
+                </button>
+              </div>
+
+              {/* 모달 내용 */}
+              <div className="p-4 overflow-y-auto max-h-96">
+                {/* 카테고리 선택 단계 */}
+                {currentStep === "category" && (
+                  <div className="grid grid-cols-2 gap-3">
+                    {Object.entries(CLOTHNAME_BY_CATEGORIES).map(
+                      ([key, category]) => (
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={() => handleCategorySelect(key as Category)}
+                          className="p-4 border border-gray-200 rounded-lg text-center hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                        >
+                          <div className="text-lg mb-1">
+                            {key === "TOP"
+                              ? "👕"
+                              : key === "BOTTOM"
+                              ? "👖"
+                              : key === "SHOES"
+                              ? "👟"
+                              : "🎒"}
+                          </div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {category.name}
+                          </div>
+                        </button>
+                      )
+                    )}
+                  </div>
+                )}
+
+                {/* 옷 아이템 선택 단계 */}
+                {currentStep === "item" && selectedCategory && (
+                  <div className="space-y-2">
+                    {CLOTHNAME_BY_CATEGORIES[selectedCategory].items.map(
+                      (item) => (
+                        <button
+                          key={item.name}
+                          type="button"
+                          onClick={() =>
+                            handleClothItemSelect(item.name as ClothName)
+                          }
+                          className="w-full p-3 text-left border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                        >
+                          <div className="text-sm font-medium text-gray-900">
+                            {item.label}
+                          </div>
+                        </button>
+                      )
+                    )}
+                  </div>
+                )}
+
+                {/* 세부 사항 선택 단계 */}
+                {currentStep === "detail" &&
+                  selectedCategory &&
+                  selectedClothName && (
+                    <div className="space-y-4">
+                      {/* 스타일 선택 */}
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-700 mb-2">
+                          스타일 (선택사항)
+                        </h4>
+                        <div className="space-y-2">
+                          <label className="flex items-center">
+                            <input
+                              type="radio"
+                              name="style"
+                              value=""
+                              checked={selectedStyle === undefined}
+                              onChange={() => setSelectedStyle(undefined)}
+                              className="mr-2"
+                            />
+                            <span className="text-sm text-gray-600">
+                              선택안함
+                            </span>
+                          </label>
+                          {STYLES.map((style) => (
+                            <label
+                              key={style.name}
+                              className="flex items-center"
+                            >
+                              <input
+                                type="radio"
+                                name="style"
+                                value={style.name}
+                                checked={selectedStyle === style.name}
+                                onChange={() =>
+                                  setSelectedStyle(style.name as Style)
+                                }
+                                className="mr-2"
+                              />
+                              <span className="text-sm text-gray-900">
+                                {style.label}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* 재질 선택 */}
+                      {MATERIALS_BY_CATEGORY[selectedCategory].length > 0 && (
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-700 mb-2">
+                            재질 (선택사항)
+                          </h4>
+                          <div className="space-y-2">
+                            <label className="flex items-center">
+                              <input
+                                type="radio"
+                                name="material"
+                                value=""
+                                checked={selectedMaterial === undefined}
+                                onChange={() => setSelectedMaterial(undefined)}
+                                className="mr-2"
+                              />
+                              <span className="text-sm text-gray-600">
+                                선택안함
+                              </span>
+                            </label>
+                            {MATERIALS_BY_CATEGORY[selectedCategory].map(
+                              (material) => (
+                                <label
+                                  key={material.name}
+                                  className="flex items-center"
+                                >
+                                  <input
+                                    type="radio"
+                                    name="material"
+                                    value={material.name}
+                                    checked={selectedMaterial === material.name}
+                                    onChange={() =>
+                                      setSelectedMaterial(
+                                        material.name as Material
+                                      )
+                                    }
+                                    className="mr-2"
+                                  />
+                                  <span className="text-sm text-gray-900">
+                                    {material.label}
+                                  </span>
+                                </label>
+                              )
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 추천 여부 선택 */}
+                      <div className="pt-4 border-t border-gray-200">
+                        <div className="flex gap-3">
+                          <button
+                            type="button"
+                            onClick={() => handleAddClothing(true)}
+                            className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                          >
+                            추천으로 추가
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAddClothing(false)}
+                            className="flex-1 bg-gray-600 text-white py-3 rounded-lg font-medium hover:bg-gray-700 transition-colors"
+                          >
+                            일반으로 추가
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+              </div>
             </div>
           </div>
         )}

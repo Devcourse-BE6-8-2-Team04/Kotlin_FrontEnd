@@ -76,22 +76,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/images/upload": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["uploadImage"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/weathers": {
         parameters: {
             query?: never;
@@ -152,22 +136,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/images/file/{filename}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["getImage"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/geos": {
         parameters: {
             query?: never;
@@ -195,6 +163,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * 기간별 옷차림 조회
+         * @description 시작일과 종료일을 이용하여 해당 기간 동안의 날씨에 적합한 옷차림 정보를 반환합니다.
+         */
         get: operations["getOutfitWithPeriod"];
         put?: never;
         post?: never;
@@ -228,6 +200,17 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        ClothItemReqBody: {
+            /** @enum {string} */
+            clothName: "T_SHIRT" | "SWEATSHIRT" | "HOODIE" | "SHIRT" | "DRESS_SHIRT" | "BLOUSE" | "SWEATER" | "CARDIGAN" | "COAT" | "JACKET" | "LEATHER_JACKET" | "DENIM_JACKET" | "BLAZER" | "PADDING" | "VEST" | "WINDBREAKER" | "FUNCTIONAL_T_SHIRT" | "JEANS" | "SLACKS" | "SHORTS" | "SKIRT" | "JOGGER_PANTS" | "TRACK_PANTS" | "LEGGINGS" | "CARGO_PANTS" | "CORDUROY_PANTS" | "CHINOS" | "SKI_PANTS" | "SNEAKERS" | "ATHLETIC_SHOES" | "FLATS" | "HEELS" | "LOAFERS" | "SLIPPERS" | "LEATHER_BOOTS" | "FUR_BOOTS" | "RAIN_BOOTS" | "SANDALS" | "OXFORDS" | "HIKING_SHOES" | "ANKLE_BOOTS" | "HAT" | "CAP" | "BEANIE" | "SCARF" | "GLOVES" | "BELT" | "BAG" | "BACKPACK" | "CROSSBODY_BAG" | "SUNGLASSES" | "UMBRELLA" | "MASK";
+            /** @enum {string} */
+            category: "TOP" | "BOTTOM" | "SHOES" | "EXTRA";
+            /** @enum {string} */
+            style?: "CASUAL_DAILY" | "FORMAL_OFFICE" | "OUTDOOR" | "DATE_LOOK" | "EXTRA";
+            /** @enum {string} */
+            material?: "COTTON" | "POLYESTER" | "WOOL" | "LINEN" | "NYLON" | "DENIM" | "LEATHER" | "FLEECE" | "SILK" | "CASHMERE" | "CORDUROY";
+            isRecommend: boolean;
+        };
         ModifyReviewReqBody: {
             title: string;
             sentence: string;
@@ -237,15 +220,16 @@ export interface components {
             cityName: string;
             /** Format: date */
             date: string;
+            clothList?: components["schemas"]["ClothItemReqBody"][];
         };
         ReviewDto: {
             /** Format: int32 */
             id: number;
-            email: string;
+            /** Format: int32 */
+            userId?: number;
+            email?: string;
             imageUrl?: string;
             title: string;
-            sentence: string;
-            tagString?: string;
             weatherInfoDto: components["schemas"]["WeatherInfoDto"];
         };
         RsDataReviewDto: {
@@ -287,8 +271,8 @@ export interface components {
             date: string;
         };
         CreateReviewReqBody: {
-            email: string;
-            password: string;
+            email?: string;
+            password?: string;
             title: string;
             sentence: string;
             tagString?: string;
@@ -297,6 +281,7 @@ export interface components {
             cityName: string;
             /** Format: date */
             date: string;
+            clothList?: components["schemas"]["ClothItemReqBody"][];
         };
         VerifyPasswordReqBody: {
             password: string;
@@ -325,6 +310,31 @@ export interface components {
             offset: number;
             isSorted: boolean;
         };
+        CategoryClothDto: {
+            /** @enum {string} */
+            clothName: "T_SHIRT" | "SWEATSHIRT" | "HOODIE" | "SHIRT" | "DRESS_SHIRT" | "BLOUSE" | "SWEATER" | "CARDIGAN" | "COAT" | "JACKET" | "LEATHER_JACKET" | "DENIM_JACKET" | "BLAZER" | "PADDING" | "VEST" | "WINDBREAKER" | "FUNCTIONAL_T_SHIRT" | "JEANS" | "SLACKS" | "SHORTS" | "SKIRT" | "JOGGER_PANTS" | "TRACK_PANTS" | "LEGGINGS" | "CARGO_PANTS" | "CORDUROY_PANTS" | "CHINOS" | "SKI_PANTS" | "SNEAKERS" | "ATHLETIC_SHOES" | "FLATS" | "HEELS" | "LOAFERS" | "SLIPPERS" | "LEATHER_BOOTS" | "FUR_BOOTS" | "RAIN_BOOTS" | "SANDALS" | "OXFORDS" | "HIKING_SHOES" | "ANKLE_BOOTS" | "HAT" | "CAP" | "BEANIE" | "SCARF" | "GLOVES" | "BELT" | "BAG" | "BACKPACK" | "CROSSBODY_BAG" | "SUNGLASSES" | "UMBRELLA" | "MASK";
+            imageUrl: string;
+            /** @enum {string} */
+            category: "TOP" | "BOTTOM" | "SHOES" | "EXTRA";
+            /** @enum {string} */
+            style?: "CASUAL_DAILY" | "FORMAL_OFFICE" | "OUTDOOR" | "DATE_LOOK" | "EXTRA";
+            /** @enum {string} */
+            material?: "COTTON" | "POLYESTER" | "WOOL" | "LINEN" | "NYLON" | "DENIM" | "LEATHER" | "FLEECE" | "SILK" | "CASHMERE" | "CORDUROY";
+        };
+        ReviewDetailDto: {
+            /** Format: int32 */
+            id: number;
+            /** Format: int32 */
+            userId?: number;
+            email?: string;
+            imageUrl?: string;
+            title: string;
+            sentence: string;
+            tagString?: string;
+            weatherInfoDto: components["schemas"]["WeatherInfoDto"];
+            recommendedClothList: components["schemas"]["CategoryClothDto"][];
+            nonRecommendedClothList: components["schemas"]["CategoryClothDto"][];
+        };
         GeoLocationDto: {
             name?: string;
             country?: string;
@@ -334,43 +344,38 @@ export interface components {
             lon: number;
             localName?: string;
         };
-        TripScheduleDto: {
-            /** Format: date */
-            start?: string;
-            /** Format: date */
-            end?: string;
-            /** Format: double */
-            lat: number;
-            /** Format: double */
-            lon: number;
-        };
-        Clothing: unknown;
-        OutfitResponseDto: {
-            clothes: {
-                [key: string]: components["schemas"]["Clothing"][];
-            };
-            extraClothes: {
-                [key: string]: components["schemas"]["Clothing"][];
-            };
-        };
-        CategoryClothDto: {
-            clothName: string;
+        ClothInfo: {
+            /** @enum {string} */
+            clothName: "T_SHIRT" | "SWEATSHIRT" | "HOODIE" | "SHIRT" | "DRESS_SHIRT" | "BLOUSE" | "SWEATER" | "CARDIGAN" | "COAT" | "JACKET" | "LEATHER_JACKET" | "DENIM_JACKET" | "BLAZER" | "PADDING" | "VEST" | "WINDBREAKER" | "FUNCTIONAL_T_SHIRT" | "JEANS" | "SLACKS" | "SHORTS" | "SKIRT" | "JOGGER_PANTS" | "TRACK_PANTS" | "LEGGINGS" | "CARGO_PANTS" | "CORDUROY_PANTS" | "CHINOS" | "SKI_PANTS" | "SNEAKERS" | "ATHLETIC_SHOES" | "FLATS" | "HEELS" | "LOAFERS" | "SLIPPERS" | "LEATHER_BOOTS" | "FUR_BOOTS" | "RAIN_BOOTS" | "SANDALS" | "OXFORDS" | "HIKING_SHOES" | "ANKLE_BOOTS" | "HAT" | "CAP" | "BEANIE" | "SCARF" | "GLOVES" | "BELT" | "BAG" | "BACKPACK" | "CROSSBODY_BAG" | "SUNGLASSES" | "UMBRELLA" | "MASK";
             imageUrl: string;
             /** @enum {string} */
-            category: "CASUAL_DAILY" | "FORMAL_OFFICE" | "OUTDOOR" | "DATE_LOOK" | "EXTRA";
-        };
-        ExtraClothDto: {
+            category: "TOP" | "BOTTOM" | "SHOES" | "EXTRA";
+            /** @enum {string} */
+            style?: "CASUAL_DAILY" | "FORMAL_OFFICE" | "OUTDOOR" | "DATE_LOOK" | "EXTRA";
+            /** @enum {string} */
+            material?: "COTTON" | "POLYESTER" | "WOOL" | "LINEN" | "NYLON" | "DENIM" | "LEATHER" | "FLEECE" | "SILK" | "CASHMERE" | "CORDUROY";
+            /** Format: double */
+            maxFeelsLike?: number;
+            /** Format: double */
+            minFeelsLike?: number;
             /** Format: int32 */
             id: number;
-            clothName: string;
-            imageUrl: string;
-            /** @enum {string} */
-            weather: "THUNDERSTORM_LIGHT_RAIN" | "THUNDERSTORM_RAIN" | "THUNDERSTORM_HEAVY_RAIN" | "LIGHT_THUNDERSTORM" | "THUNDERSTORM" | "HEAVY_THUNDERSTORM" | "RAGGED_THUNDERSTORM" | "THUNDERSTORM_LIGHT_DRIZZLE" | "THUNDERSTORM_DRIZZLE" | "THUNDERSTORM_HEAVY_DRIZZLE" | "LIGHT_DRIZZLE" | "DRIZZLE" | "HEAVY_DRIZZLE" | "LIGHT_DRIZZLE_RAIN" | "DRIZZLE_RAIN" | "HEAVY_DRIZZLE_RAIN" | "SHOWER_RAIN_AND_DRIZZLE" | "HEAVY_SHOWER_RAIN_AND_DRIZZLE" | "SHOWER_DRIZZLE" | "LIGHT_RAIN" | "MODERATE_RAIN" | "HEAVY_RAIN" | "VERY_HEAVY_RAIN" | "EXTREME_RAIN" | "FREEZING_RAIN" | "LIGHT_SHOWER_RAIN" | "SHOWER_RAIN" | "HEAVY_SHOWER_RAIN" | "RAGGED_SHOWER_RAIN" | "LIGHT_SNOW" | "SNOW" | "HEAVY_SNOW" | "SLEET" | "LIGHT_SHOWER_SLEET" | "SHOWER_SLEET" | "LIGHT_RAIN_AND_SNOW" | "RAIN_AND_SNOW" | "LIGHT_SHOWER_SNOW" | "SHOWER_SNOW" | "HEAVY_SHOWER_SNOW" | "MIST" | "SMOKE" | "HAZE" | "SAND_DUST_WHIRLS" | "FOG" | "SAND" | "DUST" | "VOLCANIC_ASH" | "SQUALLS" | "TORNADO" | "CLEAR_SKY" | "FEW_CLOUDS" | "SCATTERED_CLOUDS" | "BROKEN_CLOUDS" | "OVERCAST_CLOUDS" | "HEAT_WAVE";
+            /** Format: date-time */
+            createDate: string;
+            /** Format: date-time */
+            modifyDate: string;
+        };
+        OutfitRecommendationResponseDto: {
+            recommendedOutfits: {
+                [key: string]: components["schemas"]["ClothInfo"][];
+            };
+            notRecommendedOutfits: {
+                [key: string]: components["schemas"]["ClothInfo"][];
+            };
         };
         WeatherClothResponseDto: {
             weatherInfo: components["schemas"]["WeatherInfoDto"];
             clothList: components["schemas"]["CategoryClothDto"][];
-            extraCloth: components["schemas"]["ExtraClothDto"][];
         };
     };
     responses: never;
@@ -398,7 +403,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ReviewDto"];
+                    "*/*": components["schemas"]["ReviewDetailDto"];
                 };
             };
         };
@@ -530,33 +535,6 @@ export interface operations {
             };
         };
     };
-    uploadImage: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": {
-                    /** Format: binary */
-                    image: string;
-                };
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": Record<string, never>;
-                };
-            };
-        };
-    };
     getWeeklyWeather: {
         parameters: {
             query: {
@@ -632,26 +610,6 @@ export interface operations {
             };
         };
     };
-    getImage: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": Record<string, never>;
-                };
-            };
-        };
-    };
     getGeoLocations: {
         parameters: {
             query: {
@@ -677,7 +635,11 @@ export interface operations {
     getOutfitWithPeriod: {
         parameters: {
             query: {
-                tripSchedule: components["schemas"]["TripScheduleDto"];
+                latitude: number;
+                longitude: number;
+                location: string;
+                startDate: string;
+                endDate: string;
             };
             header?: never;
             path?: never;
@@ -691,7 +653,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["OutfitResponseDto"];
+                    "*/*": components["schemas"]["OutfitRecommendationResponseDto"];
                 };
             };
         };
