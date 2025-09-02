@@ -19,8 +19,8 @@ export default function ReviewsMain() {
   const searchParams = useSearchParams();
 
   const [reviews, setReviews] = useState<ReviewDto[] | null>(null);
-  const [page, setPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [totalElements, setTotalElements] = useState(0);
 
   const [filters, setFilters] = useState<SearchFiltersType>(() => {
@@ -67,7 +67,7 @@ export default function ReviewsMain() {
     apiFetch(`/api/v1/reviews?${params}`)
       .then((res) => {
         setReviews(res.content || []);
-        setTotalPages(res.pageable.totalPages ?? 0);
+        setTotalPages(res.pageable.totalPages ?? 1);
         setTotalElements(res.pageable.totalElements);
       })
       .catch((error) => {
