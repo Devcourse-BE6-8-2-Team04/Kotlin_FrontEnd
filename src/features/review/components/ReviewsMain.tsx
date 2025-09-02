@@ -50,7 +50,7 @@ export default function ReviewsMain() {
   ) => {
     const params = new URLSearchParams({
       page: currentPage.toString(),
-      size: "10",
+      pageSize: "10",
     });
 
     if (searchFilters.location)
@@ -67,8 +67,8 @@ export default function ReviewsMain() {
     apiFetch(`/api/v1/reviews?${params}`)
       .then((res) => {
         setReviews(res.content || []);
-        setTotalPages(res.totalPages ?? 0);
-        setTotalElements(res.totalElements);
+        setTotalPages(res.pageable.totalPages ?? 0);
+        setTotalElements(res.pageable.totalElements);
       })
       .catch((error) => {
         console.error(`${error.resultCode} : ${error.msg}`);
@@ -81,7 +81,7 @@ export default function ReviewsMain() {
 
   const handleFiltersChange = (newFilters: SearchFiltersType) => {
     setFilters(newFilters);
-    setPage(0); // 필터 변경 시 첫 페이지로 이동
+    setPage(1); // 필터 변경 시 첫 페이지로 이동
   };
 
   const hasActiveFilters = Object.keys(filters).length > 0;

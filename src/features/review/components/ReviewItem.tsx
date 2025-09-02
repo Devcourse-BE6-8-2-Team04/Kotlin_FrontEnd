@@ -58,7 +58,7 @@ export function ReviewItem({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-xs md:text-sm font-mono text-gray-600 py-1">
-                #{totalElements - (page * 10 + index)}
+                #{totalElements - ((page - 1) * 10 + index)}
               </span>
               <h4 className="font-semibold text-sm md:text-base text-gray-900 truncate">
                 {review.title}
