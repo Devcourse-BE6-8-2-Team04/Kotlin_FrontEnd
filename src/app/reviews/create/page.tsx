@@ -1,4 +1,4 @@
-import { ReviewCreateForm } from "@/features/review/components/create/ReviewCreateForm";
+import { ReviewCreateForm } from "@/features/review/components/form/ReviewCreateForm";
 
 export default function CreatePage() {
   return (

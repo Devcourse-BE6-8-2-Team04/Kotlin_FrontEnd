@@ -1,6 +1,6 @@
 "use client";
 
-import { ReviewEditForm } from "@/features/review/components/create/ReviewEditForm";
+import { ReviewEditForm } from "@/features/review/components/form/ReviewEditForm";
 import { useReview } from "@/features/review/hooks/useReview";
 import { use } from "react";
 

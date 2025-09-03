@@ -76,6 +76,39 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["join"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 로그인 */
+        post: operations["login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/weathers": {
         parameters: {
             query?: never;
@@ -128,6 +161,23 @@ export interface paths {
          * @description 지명과 위도와 경도를 이용하여 해당 위치의 날씨 정보를 조회합니다.
          */
         get: operations["getWeatherByLocation"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/members/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 내 정보 조회 */
+        get: operations["me"];
         put?: never;
         post?: never;
         delete?: never;
@@ -196,6 +246,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** 로그아웃 */
+        delete: operations["logout"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -224,9 +291,9 @@ export interface components {
         };
         ReviewDto: {
             /** Format: int32 */
-            id: number;
+            id?: number;
             /** Format: int32 */
-            userId?: number;
+            memberId?: number;
             email?: string;
             imageUrl?: string;
             title: string;
@@ -239,7 +306,7 @@ export interface components {
         };
         WeatherInfoDto: {
             /** Format: int32 */
-            id: number;
+            id?: number;
             weather: string;
             /** Format: int32 */
             weatherCode: number;
@@ -291,6 +358,45 @@ export interface components {
             msg: string;
             data: boolean;
         };
+        MemberJoinReqBody: {
+            userId: string;
+            password: string;
+            email: string;
+            /** Format: int32 */
+            age: number;
+            /** @enum {string} */
+            gender: "MALE" | "FEMALE";
+            /** @enum {string} */
+            tendency: "COLD_SENSITIVE" | "NEUTRAL" | "HEAT_SENSITIVE";
+        };
+        MemberDto: {
+            /** Format: int32 */
+            id: number;
+            /** Format: date-time */
+            createDate: string;
+            /** Format: date-time */
+            modifyDate: string;
+            userId: string;
+        };
+        RsDataMemberDto: {
+            resultCode: string;
+            msg: string;
+            data: components["schemas"]["MemberDto"];
+        };
+        MemberLoginReqBody: {
+            username: string;
+            password: string;
+        };
+        MemberLoginResBody: {
+            accessToken: string;
+            apiKey: string;
+            memberDto: components["schemas"]["MemberDto"];
+        };
+        RsDataMemberLoginResBody: {
+            resultCode: string;
+            msg: string;
+            data: components["schemas"]["MemberLoginResBody"];
+        };
         PageDtoReviewDto: {
             content: components["schemas"]["ReviewDto"][];
             pageable: components["schemas"]["PageableDto"];
@@ -323,9 +429,9 @@ export interface components {
         };
         ReviewDetailDto: {
             /** Format: int32 */
-            id: number;
+            id?: number;
             /** Format: int32 */
-            userId?: number;
+            memberId?: number;
             email?: string;
             imageUrl?: string;
             title: string;
@@ -334,6 +440,22 @@ export interface components {
             weatherInfoDto: components["schemas"]["WeatherInfoDto"];
             recommendedClothList: components["schemas"]["CategoryClothDto"][];
             nonRecommendedClothList: components["schemas"]["CategoryClothDto"][];
+        };
+        MemberWithUserIdDto: {
+            /** Format: int32 */
+            id?: number;
+            userId: string;
+            /** Format: date-time */
+            createDate: string;
+            /** Format: date-time */
+            modifyDate: string;
+            email: string;
+            /** Format: int32 */
+            age: number;
+            /** @enum {string} */
+            gender: "MALE" | "FEMALE";
+            /** @enum {string} */
+            tendency: "COLD_SENSITIVE" | "NEUTRAL" | "HEAT_SENSITIVE";
         };
         GeoLocationDto: {
             name?: string;
@@ -376,6 +498,11 @@ export interface components {
         WeatherClothResponseDto: {
             weatherInfo: components["schemas"]["WeatherInfoDto"];
             clothList: components["schemas"]["CategoryClothDto"][];
+        };
+        RsDataVoid: {
+            resultCode: string;
+            msg: string;
+            data: unknown;
         };
     };
     responses: never;
@@ -535,6 +662,54 @@ export interface operations {
             };
         };
     };
+    join: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MemberJoinReqBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RsDataMemberDto"];
+                };
+            };
+        };
+    };
+    login: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MemberLoginReqBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RsDataMemberLoginResBody"];
+                };
+            };
+        };
+    };
     getWeeklyWeather: {
         parameters: {
             query: {
@@ -610,6 +785,26 @@ export interface operations {
             };
         };
     };
+    me: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MemberWithUserIdDto"];
+                };
+            };
+        };
+    };
     getGeoLocations: {
         parameters: {
             query: {
@@ -677,6 +872,26 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["WeatherClothResponseDto"];
+                };
+            };
+        };
+    };
+    logout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RsDataVoid"];
                 };
             };
         };
