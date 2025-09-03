@@ -38,6 +38,7 @@ export async function apiFetch<T = any>(url: string, options: ApiFetchOptions = 
       ...headers,
     },
     data,
+    withCredentials: true,
   });
 
   return res.data as T;
