@@ -40,13 +40,21 @@ export function useComment(id: number) {
   const verifyPassword = async (password: string) => {
     return apiFetch(`/api/v1/comments/${id}/verify-password`, {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",  // ✅ JSON 명시
+      },
       body: JSON.stringify({ password }),
-    }).then((res) => res.data === true)
-    .catch((error) => {
-      throw new Error(error.msg);
-      return false;
-    });
+    })
+      .then((res) => {
+        // RsData<Boolean> 구조라면
+        return res.data === true;
+      })
+      .catch((error) => {
+        console.error(`${error.resultCode} : ${error.msg}`);
+        throw new Error(error.msg);
+      });
   };
+  
 
   return { id, comment, deleteComment, verifyPassword };
 }
