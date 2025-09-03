@@ -1,10 +1,11 @@
+// src/features/clothdetail/hook.ts
 import { useEffect, useState } from "react";
-import { fetchClothDetails, ClothItem, ExtraCloth, WeatherInfo } from "./api";
+import { fetchClothDetails, WeatherInfo, OutfitMap } from "./api";
 
 export function useClothDetailData() {
   const [weatherData, setWeatherData] = useState<WeatherInfo | null>(null);
-  const [clothingItems, setClothingItems] = useState<ClothItem[]>([]);
-  const [extraClothingItems, setExtraClothingItems] = useState<ExtraCloth[]>([]);
+  const [recommendedOutfits, setRecommendedOutfits] = useState<OutfitMap>({});
+  const [notRecommendedOutfits, setNotRecommendedOutfits] = useState<OutfitMap>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -13,8 +14,8 @@ export function useClothDetailData() {
       fetchClothDetails(latitude, longitude)
         .then((data) => {
           setWeatherData(data.weatherData);
-          setClothingItems(data.clothingItems);
-          setExtraClothingItems(data.extraClothingItems);
+          setRecommendedOutfits(data.recommendedOutfits);
+          setNotRecommendedOutfits(data.notRecommendedOutfits);
           setLoading(false);
         })
         .catch((err) => {
@@ -25,7 +26,7 @@ export function useClothDetailData() {
 
     if (!navigator.geolocation) {
       console.warn("Geolocation not supported. Using fallback location.");
-      fetchData(37.5665, 126.9780);
+      fetchData(37.5665, 126.9780); // 서울
       return;
     }
 
@@ -33,7 +34,6 @@ export function useClothDetailData() {
       (pos) => {
         const lat = pos.coords.latitude;
         const lon = pos.coords.longitude;
-        console.log("✅ 위치 정보:", lat, lon);
         fetchData(lat, lon);
       },
       (err) => {
@@ -43,5 +43,5 @@ export function useClothDetailData() {
     );
   }, []);
 
-  return { weatherData, clothingItems, extraClothingItems, loading, error };
+  return { weatherData, recommendedOutfits, notRecommendedOutfits, loading, error };
 }
