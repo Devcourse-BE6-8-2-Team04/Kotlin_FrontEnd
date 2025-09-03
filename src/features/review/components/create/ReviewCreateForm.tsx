@@ -19,127 +19,14 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
-import type { Category, ClothName, Material, Style } from "../types";
+import type { Category, ClothName, Material, Style } from "../../types";
+import {
+  CLOTHNAME_BY_CATEGORIES,
+  MATERIALS_BY_CATEGORY,
+  STYLES,
+} from "./ClothData";
 
 type ClothItemReqBody = components["schemas"]["ClothItemReqBody"];
-
-// 옷 데이터 정의
-const CLOTHNAME_BY_CATEGORIES = {
-  TOP: {
-    name: "상의",
-    items: [
-      { name: "T_SHIRT", label: "반팔" },
-      { name: "SWEATSHIRT", label: "맨투맨" },
-      { name: "HOODIE", label: "후드티" },
-      { name: "SHIRT", label: "셔츠" },
-      { name: "DRESS_SHIRT", label: "드레스 셔츠" },
-      { name: "BLOUSE", label: "블라우스" },
-      { name: "SWEATER", label: "스웨터" },
-      { name: "CARDIGAN", label: "가디건" },
-      { name: "COAT", label: "코트" },
-      { name: "JACKET", label: "자켓" },
-      { name: "LEATHER_JACKET", label: "가죽 자켓" },
-      { name: "DENIM_JACKET", label: "데님 자켓" },
-      { name: "BLAZER", label: "블레이저" },
-      { name: "PADDING", label: "패딩" },
-      { name: "VEST", label: "조끼" },
-      { name: "WINDBREAKER", label: "바람막이" },
-      { name: "FUNCTIONAL_T_SHIRT", label: "기능성 티셔츠" },
-    ],
-  },
-  BOTTOM: {
-    name: "하의",
-    items: [
-      { name: "JEANS", label: "청바지" },
-      { name: "SLACKS", label: "슬랙스" },
-      { name: "SHORTS", label: "반바지" },
-      { name: "SKIRT", label: "치마" },
-      { name: "JOGGER_PANTS", label: "조거 팬츠" },
-      { name: "TRACK_PANTS", label: "트랙 팬츠" },
-      { name: "LEGGINGS", label: "레깅스" },
-      { name: "CARGO_PANTS", label: "카고 바지" },
-      { name: "CORDUROY_PANTS", label: "골덴 바지" },
-      { name: "CHINOS", label: "치노스" },
-      { name: "SKI_PANTS", label: "스키 바지" },
-    ],
-  },
-  SHOES: {
-    name: "신발",
-    items: [
-      { name: "SNEAKERS", label: "스니커즈" },
-      { name: "ATHLETIC_SHOES", label: "운동화" },
-      { name: "FLATS", label: "플랫슈즈" },
-      { name: "HEELS", label: "하이힐" },
-      { name: "LOAFERS", label: "로퍼" },
-      { name: "SLIPPERS", label: "슬리퍼" },
-      { name: "LEATHER_BOOTS", label: "가죽 부츠" },
-      { name: "FUR_BOOTS", label: "털 부츠" },
-      { name: "RAIN_BOOTS", label: "장화" },
-      { name: "SANDALS", label: "샌들" },
-      { name: "OXFORDS", label: "옥스포드" },
-      { name: "HIKING_SHOES", label: "하이킹 신발" },
-      { name: "ANKLE_BOOTS", label: "앵클 부츠" },
-    ],
-  },
-  EXTRA: {
-    name: "기타",
-    items: [
-      { name: "HAT", label: "모자" },
-      { name: "CAP", label: "캡" },
-      { name: "BEANIE", label: "비니" },
-      { name: "SCARF", label: "목도리" },
-      { name: "GLOVES", label: "장갑" },
-      { name: "BELT", label: "벨트" },
-      { name: "BAG", label: "가방" },
-      { name: "BACKPACK", label: "백팩" },
-      { name: "CROSSBODY_BAG", label: "크로스백" },
-      { name: "SUNGLASSES", label: "선글라스" },
-      { name: "UMBRELLA", label: "우산" },
-      { name: "MASK", label: "마스크" },
-    ],
-  },
-};
-
-const STYLES = [
-  { name: "CASUAL_DAILY", label: "캐주얼 데일리" },
-  { name: "FORMAL_OFFICE", label: "포멀 오피스" },
-  { name: "OUTDOOR", label: "아웃도어" },
-  { name: "DATE_LOOK", label: "데이트 룩" },
-  { name: "EXTRA", label: "기타" },
-];
-
-// 카테고리별로 사용 가능한 재질 정의
-const MATERIALS_BY_CATEGORY = {
-  TOP: [
-    { name: "COTTON", label: "면" },
-    { name: "POLYESTER", label: "폴리에스터" },
-    { name: "WOOL", label: "울" },
-    { name: "LINEN", label: "린넨" },
-    { name: "NYLON", label: "나일론" },
-    { name: "DENIM", label: "데님" },
-    { name: "LEATHER", label: "가죽" },
-    { name: "FLEECE", label: "플리스" },
-    { name: "SILK", label: "실크" },
-    { name: "CASHMERE", label: "캐시미어" },
-    { name: "CORDUROY", label: "코듀로이" },
-  ],
-  BOTTOM: [
-    { name: "COTTON", label: "면" },
-    { name: "POLYESTER", label: "폴리에스터" },
-    { name: "WOOL", label: "울" },
-    { name: "LINEN", label: "린넨" },
-    { name: "NYLON", label: "나일론" },
-    { name: "DENIM", label: "데님" },
-    { name: "SILK", label: "실크" },
-    { name: "CORDUROY", label: "코듀로이" },
-  ],
-  SHOES: [
-    { name: "POLYESTER", label: "폴리에스터" },
-    { name: "NYLON", label: "나일론" },
-    { name: "LEATHER", label: "가죽" },
-  ],
-  EXTRA: [], // 기타는 재질 선택 불가
-};
 
 // 이미지 파일을 백엔드에 업로드하고 URL을 받아오는 함수
 async function uploadImageToServer(file: File): Promise<string> {

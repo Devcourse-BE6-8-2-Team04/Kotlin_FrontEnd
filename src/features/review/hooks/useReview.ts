@@ -2,7 +2,7 @@ import type { components } from "@/lib/backend/apiV1/schema";
 import { apiFetch } from "@/lib/backend/client";
 import { useEffect, useState } from "react";
 
-type ReviewDto = components["schemas"]["ReviewDto"];
+type ReviewDto = components["schemas"]["ReviewDetailDto"];
 
 export function useReview(id: number) {
   const [review, setReview] = useState<ReviewDto | null>(null);
