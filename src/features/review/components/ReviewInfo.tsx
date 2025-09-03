@@ -44,7 +44,7 @@ export function ReviewInfo({ reviewState }: ReviewInfoProps) {
         const isValid = await verifyPassword(pw);
         if (isValid) {
           setShowPwModal(null);
-          router.push(`/reviews/edit/${review.id}`);
+          router.push(`/reviews/${review.id}/edit`);
         }
       }
     } catch (err: any) {
