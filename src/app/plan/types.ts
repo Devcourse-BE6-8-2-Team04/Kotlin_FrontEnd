@@ -3,23 +3,20 @@ export interface Cloth {
   clothName: string;
   imageUrl: string;
   category: string;
-  maxFeelsLike: number;
-  minFeelsLike: number;
-}
-
-export interface ExtraCloth {
-  id: number;
-  clothName: string;
-  imageUrl: string;
-  weather: string;
+  style: string;
+  material: string | null;
+  maxFeelsLike: number | null;
+  minFeelsLike: number | null;
+  createDate: string;
+  modifyDate: string;
 }
 
 export interface ClothApiResponse {
-  clothes: {
+  recommendedOutfits: {
     [category: string]: Cloth[];
   };
-  extraClothes: {
-    EXTRA: ExtraCloth[];
+  notRecommendedOutfits: {
+    [category: string]: Cloth[];
   };
 }
 
