@@ -327,7 +327,7 @@ export function ReviewCreateForm() {
   // 도시 선택 핸들러 개선
   const handleCitySelect = (city: GeoLocationDto) => {
     setSelectedCity(city);
-    setLocation(city.localName || city.name);
+    setLocation(city.localName || city.name || "");
     setShowDropdown(false);
     setLocationCandidates([]);
     clearError("location");

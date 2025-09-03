@@ -291,7 +291,7 @@ export function ReviewEditFormContent({
 
   const handleCitySelect = (city: GeoLocationDto) => {
     setSelectedCity(city);
-    setLocation(city.localName || city.name);
+    setLocation(city.localName || city.name || "");
     setShowDropdown(false);
     setLocationCandidates([]);
     clearError("location");
