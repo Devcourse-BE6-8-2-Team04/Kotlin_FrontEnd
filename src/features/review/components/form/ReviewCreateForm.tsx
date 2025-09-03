@@ -88,6 +88,18 @@ export function ReviewCreateForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        const response = await fetch("/api/v1/members/me");
+        setIsLoggedIn(response.ok);
+      } catch {
+        setIsLoggedIn(false);
+      }
+    };
+    checkAuthStatus();
+  }, []);
+
   // 옷 관련 상태
   const [showClothingModal, setShowClothingModal] = useState(false);
   const [selectedClothing, setSelectedClothing] = useState<ClothItemReqBody[]>(

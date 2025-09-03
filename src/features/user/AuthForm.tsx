@@ -1,6 +1,6 @@
 "use client";
-import React, { useState } from "react";
 import api from "@/features/user/api";
+import React, { useState } from "react";
 
 export default function AuthForm() {
   const [isLogin, setIsLogin] = useState(true);
@@ -13,7 +13,9 @@ export default function AuthForm() {
     tendency: "NEUTRAL", // 기본값을 유효한 값으로
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
@@ -49,7 +51,9 @@ export default function AuthForm() {
 
   return (
     <div className="p-6 max-w-md mx-auto mt-10 bg-white rounded shadow">
-      <h2 className="text-xl font-bold mb-4">{isLogin ? "로그인" : "회원가입"}</h2>
+      <h2 className="text-xl font-bold mb-4">
+        {isLogin ? "로그인" : "회원가입"}
+      </h2>
       <form onSubmit={handleSubmit} className="space-y-3">
         <input
           name="username"
